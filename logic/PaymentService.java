@@ -2,31 +2,36 @@ package logic;
 
 public class PaymentService {
 
-    private double balance = 1000;
-
-    public double checkBalance() {
-        return balance;
+    public String deposit(UserAccount user, double amount) {
+        try {
+            user.deposit(amount);
+            return "Deposited $" + amount + " successfully for " + user.getUsername();
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
+        }
     }
 
-    public String deposit(double amount) {
-        if (amount <= 0) {
-            return "Invalid amount!";
+    public String withdraw(UserAccount user, double amount) {
+        try {
+            if (!user.withdraw(amount)) return "Insufficient funds for " + user.getUsername();
+            return "Withdrew $" + amount + " successfully from " + user.getUsername();
+        } catch (IllegalArgumentException e) {
+            return e.getMessage();
         }
-
-        balance += amount;
-        return "Deposited successfully.";
     }
 
-    public String withdraw(double amount) {
-        if (amount <= 0) {
-            return "Invalid amount!";
-        }
+    public double checkBalance(UserAccount user) {
+        return user.getBalance();
+    }
 
-        if (amount > balance) {
-            return "Insufficient funds!";
+    public void printTransactions(UserAccount user) {
+        System.out.println("=== Transactions for " + user.getUsername() + " ===");
+        if (user.getTransactions().isEmpty()) {
+            System.out.println("No transactions yet.");
+        } else {
+            for (Transaction t : user.getTransactions()) {
+                System.out.println(t);
+            }
         }
-
-        balance -= amount;
-        return "Withdraw successful.";
     }
 }

@@ -2,6 +2,7 @@ package controller;
 
 import java.util.Scanner;
 import logic.PaymentService;
+import logic.UserAccount;
 
 public class Main {
 
@@ -10,42 +11,65 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         PaymentService service = new PaymentService();
 
+        // Create a user account
+        System.out.print("Enter your username: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Enter initial balance: ");
+        double initialBalance = scanner.nextDouble();
+        scanner.nextLine(); // consume the newline
+
+        UserAccount account = new UserAccount(username, initialBalance);
+
         while (true) {
             showMenu();
 
             System.out.print("Choose option: ");
             int choice = scanner.nextInt();
+            scanner.nextLine(); // consume newline
 
-            if (choice == 1) {
-                double balance = service.checkBalance();
-                System.out.println("Balance: $" + balance);
+            switch (choice) {
+                case 1:
+                    // Check balance
+                    double balance = service.checkBalance(account);
+                    System.out.println("Balance for " + account.getUsername() + ": $" + balance);
+                    break;
 
-            } else if (choice == 2) {
-                System.out.print("Enter amount: ");
-                double amount = scanner.nextDouble();
+                case 2:
+                    // Deposit
+                    System.out.print("Enter amount to deposit: ");
+                    double depositAmount = scanner.nextDouble();
+                    scanner.nextLine();
+                    String depositResult = service.deposit(account, depositAmount);
+                    System.out.println(depositResult);
+                    break;
 
-                String result = service.deposit(amount);
-                System.out.println(result);
+                case 3:
+                    // Withdraw
+                    System.out.print("Enter amount to withdraw: ");
+                    double withdrawAmount = scanner.nextDouble();
+                    scanner.nextLine();
+                    String withdrawResult = service.withdraw(account, withdrawAmount);
+                    System.out.println(withdrawResult);
+                    break;
 
-            } else if (choice == 3) {
-                System.out.print("Enter amount: ");
-                double amount = scanner.nextDouble();
+                case 4:
+                    // Transaction history
+                    service.printTransactions(account);
+                    break;
 
-                String result = service.withdraw(amount);
-                System.out.println(result);
+                case 5:
+                    // Exit
+                    System.out.println("Goodbye 👋");
+                    scanner.close();
+                    return;
 
-            } else if (choice == 4) {
-                System.out.println("Goodbye 👋");
-                break;
-
-            } else {
-                System.out.println("Invalid option!");
+                default:
+                    System.out.println("Invalid option!");
             }
 
             System.out.println();
         }
-
-        scanner.close();
     }
 
     static void showMenu() {
@@ -53,6 +77,7 @@ public class Main {
         System.out.println("1. Check Balance");
         System.out.println("2. Deposit");
         System.out.println("3. Withdraw");
-        System.out.println("4. Exit");
+        System.out.println("4. View Transactions");
+        System.out.println("5. Exit");
     }
 }
