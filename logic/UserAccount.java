@@ -5,9 +5,9 @@ import java.util.List;
 
 public class UserAccount {
 
-    private final String username;   // account name
-    private double balance;          // current balance
-    private List<Transaction> transactions;  // transaction history
+    private final String username;
+    private double balance;
+    private final List<Transaction> transactions;
 
     public UserAccount(String username, double initialBalance) {
         this.username = username;
@@ -27,17 +27,30 @@ public class UserAccount {
         return transactions;
     }
 
+    // ✅ Controlled deposit
     public void deposit(double amount) {
-        if (amount <= 0) throw new IllegalArgumentException("Deposit must be positive.");
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Deposit must be positive.");
+        }
         balance += amount;
-        transactions.add(new Transaction("Deposit", amount));
     }
 
+    // ✅ Controlled withdraw
     public boolean withdraw(double amount) {
-        if (amount <= 0) throw new IllegalArgumentException("Withdraw must be positive.");
-        if (amount > balance) return false;
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Withdraw must be positive.");
+        }
+
+        if (amount > balance) {
+            return false;
+        }
+
         balance -= amount;
-        transactions.add(new Transaction("Withdraw", amount));
         return true;
+    }
+
+    // ✅ Add transaction safely
+    public void addTransaction(Transaction transaction) {
+        transactions.add(transaction);
     }
 }
