@@ -7,10 +7,12 @@ public class PaymentService {
 
     private final AccountService accountService;
     private final TransactionService transactionService;
+    private final FeeCalculator feeCalculator;
 
     public PaymentService(UserAccount safaricom) {
         this.accountService = new AccountService(safaricom);
         this.transactionService = new TransactionService();
+        this.feeCalculator = new FeeCalculator();
     }
 
     public String deposit(UserAccount user, double amount) {
@@ -34,7 +36,7 @@ public class PaymentService {
             return "Invalid amount.";
         }
 
-        double fee = calculateFee(amount);
+        double fee = feeCalculator.calculate(amount);
 
         boolean success = accountService.withdraw(user, amount, fee);
         if (success) {
@@ -52,18 +54,34 @@ public class PaymentService {
 
     public String sendMoney(UserAccount from, UserAccount to, double amount) {
         if (amount <= 0) {
+            transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
             return "Invalid amount.";
         }
 
-        double fee = calculateFee(amount);
+        double fee = feeCalculator.calculate(amount);
 
-        boolean success = accountService.withdraw(from, amount, fee);
-        if (!success) {
+        boolean withdrawSuccess = accountService.withdraw(from, amount, fee);
+        if (!withdrawSuccess) {
             transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
             return "M-PESA FAILED: Insufficient funds including fees.";
         }
 
-        accountService.deposit(to, amount);
+        boolean depositSuccess = false;
+        try {
+            depositSuccess = accountService.deposit(to, amount);
+        } catch (Exception e) {
+            // ATOMICITY: Rollback - restore money to sender
+            accountService.refund(from, amount, fee);
+            transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
+            return "M-PESA FAILED: Transfer failed. Money refunded.";
+        }
+
+        if (!depositSuccess) {
+            // ATOMICITY: Rollback - restore money to sender
+            accountService.refund(from, amount, fee);
+            transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
+            return "M-PESA FAILED: Transfer failed. Money refunded.";
+        }
 
         Transaction txSent = transactionService.createTransaction("TRANSFER_SENT", amount, "SUCCESS", from.getUsername(), to.getUsername());
         Transaction txReceived = transactionService.createTransaction("TRANSFER_RECEIVED", amount, "SUCCESS", from.getUsername(), to.getUsername());
@@ -79,7 +97,7 @@ public class PaymentService {
     }
 
     public String buyAirtime(UserAccount user, double amount) {
-        double fee = calculateFee(amount);
+        double fee = feeCalculator.calculate(amount);
 
         boolean success = accountService.withdraw(user, amount, fee);
         if (!success) {
@@ -98,7 +116,7 @@ public class PaymentService {
     }
 
     public String lipaNaMpesa(UserAccount user, double amount, String business) {
-        double fee = calculateFee(amount);
+        double fee = feeCalculator.calculate(amount);
 
         boolean success = accountService.withdraw(user, amount, fee);
         if (!success) {
@@ -137,10 +155,4 @@ public class PaymentService {
         transactionService.printTransactions(user);
     }
 
-    private double calculateFee(double amount) {
-        if (amount <= 100) return 0;
-        else if (amount <= 500) return 13;
-        else if (amount <= 1000) return 25;
-        else return 30;
     }
-}

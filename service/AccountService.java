@@ -32,6 +32,13 @@ public class AccountService {
         return true;
     }
 
+    public void refund(UserAccount user, double amount, double fee) {
+        user.deposit(amount);
+        if (fee > 0) {
+            safaricom.withdraw(fee);
+        }
+    }
+
     public double checkBalance(UserAccount user) {
         return user.getBalance();
     }
