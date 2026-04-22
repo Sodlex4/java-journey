@@ -1,4 +1,7 @@
-package logic;
+package service;
+
+import model.Transaction;
+import model.UserAccount;
 
 public class PaymentService {
 

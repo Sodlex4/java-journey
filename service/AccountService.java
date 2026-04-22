@@ -1,4 +1,6 @@
-package logic;
+package service;
+
+import model.UserAccount;
 
 public class AccountService {
 
