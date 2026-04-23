@@ -70,4 +70,10 @@ public class UserAccount {
     public void addTransaction(Transaction transaction) {
         transactions.add(transaction);
     }
+
+    // ✅ Bulk add transactions (for DB load)
+    public void setTransactions(List<Transaction> txs) {
+        this.transactions.clear();
+        this.transactions.addAll(txs);
+    }
 }

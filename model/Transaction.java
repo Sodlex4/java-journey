@@ -23,6 +23,16 @@ public class Transaction {
         this.timestamp = LocalDateTime.now();
     }
 
+    public Transaction(String txId, String type, double amount, String status, String fromUser, String toUser, LocalDateTime timestamp) {
+        this.id = txId;
+        this.type = type;
+        this.amount = amount;
+        this.status = status;
+        this.fromUser = fromUser;
+        this.toUser = toUser;
+        this.timestamp = timestamp;
+    }
+
     private String generateId() {
         return "MPESA-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }

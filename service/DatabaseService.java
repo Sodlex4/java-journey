@@ -3,22 +3,23 @@ package service;
 import model.UserAccount;
 import model.Transaction;
 
+import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class DatabaseService {
 
-    private static final String DB_URL = "jdbc:mariadb://localhost:3306";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "sodlex";
+    private static String DB_URL;
+    private static String DB_USER;
+    private static String DB_PASSWORD;
     private static final String DRIVER = "org.mariadb.jdbc.Driver";
     private static final String SYSTEM_ACCOUNT = "SAFARICOM";
     private static final String DB_NAME = "mpesa_db";
 
-    private Connection connection;
-
     public DatabaseService() {
+        loadEnv();
         try {
             Class.forName(DRIVER);
             connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
@@ -31,6 +32,22 @@ public class DatabaseService {
             System.err.println("Database connection failed: " + e.getMessage());
         }
     }
+
+    private void loadEnv() {
+        Properties props = new Properties();
+        try (InputStream in = new FileInputStream(".env")) {
+            props.load(in);
+            DB_URL = props.getProperty("DB_URL", "jdbc:mariadb://localhost:3306");
+            DB_USER = props.getProperty("DB_USER", "root");
+            DB_PASSWORD = props.getProperty("DB_PASSWORD", "sodlex");
+        } catch (IOException e) {
+            DB_URL = System.getenv("DB_URL") != null ? System.getenv("DB_URL") : "jdbc:mariadb://localhost:3306";
+            DB_USER = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
+            DB_PASSWORD = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "sodlex";
+        }
+    }
+
+    private Connection connection;
 
     private void createDatabaseIfNeeded() throws SQLException {
         try (Statement stmt = connection.createStatement()) {
@@ -168,7 +185,7 @@ public class DatabaseService {
 
     public List<Transaction> getUserTransactions(int userId) {
         List<Transaction> transactions = new ArrayList<>();
-        String sql = "SELECT tx_id, type, amount, status, from_user, to_user FROM transactions WHERE user_id = ? ORDER BY timestamp DESC";
+        String sql = "SELECT tx_id, type, amount, status, from_user, to_user, timestamp FROM transactions WHERE user_id = ? ORDER BY timestamp DESC";
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -176,11 +193,13 @@ public class DatabaseService {
 
             while (rs.next()) {
                 Transaction tx = new Transaction(
+                    rs.getString("tx_id"),
                     rs.getString("type"),
                     rs.getDouble("amount"),
                     rs.getString("status"),
                     rs.getString("from_user"),
-                    rs.getString("to_user")
+                    rs.getString("to_user"),
+                    rs.getTimestamp("transactions.timestamp").toLocalDateTime()
                 );
                 transactions.add(tx);
             }

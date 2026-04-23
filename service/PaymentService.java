@@ -8,11 +8,19 @@ public class PaymentService {
     private final AccountService accountService;
     private final TransactionService transactionService;
     private final FeeCalculator feeCalculator;
+    private final DatabaseService dbService;
 
-    public PaymentService(UserAccount safaricom) {
+    public PaymentService(UserAccount safaricom, DatabaseService dbService) {
         this.accountService = new AccountService(safaricom);
         this.transactionService = new TransactionService();
         this.feeCalculator = new FeeCalculator();
+        this.dbService = dbService;
+    }
+
+    private void saveToDb(Transaction tx, int userId) {
+        if (dbService != null) {
+            dbService.saveTransaction(tx, userId);
+        }
     }
 
     public String deposit(UserAccount user, double amount) {
@@ -25,6 +33,7 @@ public class PaymentService {
         if (success) {
             Transaction tx = transactionService.createTransaction("DEPOSIT", amount, "SUCCESS", "SYSTEM", user.getUsername());
             transactionService.addTransaction(user, tx);
+            saveToDb(tx, user.getId());
             return transactionService.formatMessage("Received", amount, user, tx);
         }
         return "Deposit failed.";
@@ -42,6 +51,7 @@ public class PaymentService {
         if (success) {
             Transaction tx = transactionService.createTransaction("WITHDRAW", amount, "SUCCESS", user.getUsername(), "AGENT");
             transactionService.addTransaction(user, tx);
+            saveToDb(tx, user.getId());
             String result = transactionService.formatMessage("Withdrawn", amount, user, tx);
             if (fee > 0) {
                 result += "\nFee collected: KES " + fee;
@@ -87,6 +97,8 @@ public class PaymentService {
         Transaction txReceived = transactionService.createTransaction("TRANSFER_RECEIVED", amount, "SUCCESS", from.getUsername(), to.getUsername());
         transactionService.addTransaction(from, txSent);
         transactionService.addTransaction(to, txReceived);
+        saveToDb(txSent, from.getId());
+        saveToDb(txReceived, to.getId());
 
         String result = "M-PESA CONFIRMED\nYou sent KES " + amount + " to " + to.getUsername() +
                 "\nNew balance: KES " + from.getBalance();
@@ -107,6 +119,7 @@ public class PaymentService {
 
         Transaction tx = transactionService.createTransaction("AIRTIME", amount, "SUCCESS", user.getUsername(), "SAFARICOM");
         transactionService.addTransaction(user, tx);
+        saveToDb(tx, user.getId());
 
         String result = "Airtime purchased\nTXID: " + tx.getId();
         if (fee > 0) {
@@ -126,6 +139,7 @@ public class PaymentService {
 
         Transaction tx = transactionService.createTransaction("LIPA", amount, "SUCCESS", user.getUsername(), business);
         transactionService.addTransaction(user, tx);
+        saveToDb(tx, user.getId());
 
         String result = "Paid " + business + "\nTXID: " + tx.getId();
         if (fee > 0) {
@@ -143,6 +157,7 @@ public class PaymentService {
         accountService.deposit(user, amount);
         Transaction tx = transactionService.createTransaction("LOAN", amount, "SUCCESS", "SYSTEM", user.getUsername());
         transactionService.addTransaction(user, tx);
+        saveToDb(tx, user.getId());
 
         return "Loan approved\nTXID: " + tx.getId();
     }

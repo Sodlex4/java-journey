@@ -27,7 +27,7 @@ public class Main {
         }
 
         UserAccount safaricom = new UserAccount(0, "M-PESA", dbService.getSystemBalance());
-        PaymentService service = new PaymentService(safaricom);
+        PaymentService service = new PaymentService(safaricom, dbService);
 
         System.out.println("\n=== Loaded users from database ===");
         for (UserAccount u : users) {
@@ -42,6 +42,11 @@ public class Main {
             System.out.println("Only one user in DB. Creating second user...");
             dbService.createUser("mary", 500.00);
             user2 = dbService.getUserByUsername("mary");
+        }
+
+        user1.setTransactions(dbService.getUserTransactions(user1.getId()));
+        if (user2 != null) {
+            user2.setTransactions(dbService.getUserTransactions(user2.getId()));
         }
 
         UserAccount currentUser = user1;
