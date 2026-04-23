@@ -5,14 +5,31 @@ import java.util.List;
 
 public class UserAccount {
 
+    private int id;
     private final String username;
     private double balance;
     private final List<Transaction> transactions;
 
     public UserAccount(String username, double initialBalance) {
+        this.id = 0;
         this.username = username;
         this.balance = initialBalance;
         this.transactions = new ArrayList<>();
+    }
+
+    public UserAccount(int id, String username, double initialBalance) {
+        this.id = id;
+        this.username = username;
+        this.balance = initialBalance;
+        this.transactions = new ArrayList<>();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getUsername() {

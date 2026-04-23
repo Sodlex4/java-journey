@@ -31,6 +31,30 @@ public class Transaction {
         return id;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getFromUser() {
+        return fromUser;
+    }
+
+    public String getToUser() {
+        return toUser;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
     @Override
     public String toString() {
         return timestamp +
