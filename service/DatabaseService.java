@@ -136,6 +136,10 @@ public class DatabaseService {
         T execute() throws SQLException;
     }
 
+    public interface RetryableWithConnection<T> {
+        T execute(Connection conn) throws SQLException;
+    }
+
     private <T> T executeWithRetry(Retryable<T> operation) {
         int attempts = 0;
         SQLException lastException = null;
@@ -155,6 +159,44 @@ public class DatabaseService {
                 attempts++;
                 logger.warning("Database attempt " + attempts + " failed: " + e.getMessage());
                 
+                if (attempts < MAX_RETRIES) {
+                    try {
+                        Thread.sleep(RETRY_DELAY_MS * attempts);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.close();
+                    } catch (SQLException e) {
+                        logger.warning("Error closing connection: " + e.getMessage());
+                    }
+                }
+            }
+        }
+        logger.severe("Database operation failed after " + MAX_RETRIES + " attempts");
+        throw new RuntimeException("Database operation failed", lastException);
+    }
+
+    private <T> T executeWithConnection(RetryableWithConnection<T> operation) {
+        Connection conn = null;
+        SQLException lastException = null;
+        int attempts = 0;
+        
+        while (attempts < MAX_RETRIES) {
+            conn = null;
+            try {
+                conn = getConnection();
+                lastException = null;
+                T result = operation.execute(conn);
+                return result;
+            } catch (SQLException e) {
+                lastException = e;
+                attempts++;
+                logger.warning("Database attempt " + attempts + " failed: " + e.getMessage());
                 if (attempts < MAX_RETRIES) {
                     try {
                         Thread.sleep(RETRY_DELAY_MS * attempts);
@@ -209,8 +251,8 @@ public class DatabaseService {
     public UserAccount getUserById(int userId) {
         String sql = "SELECT id, username, balance FROM users WHERE id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -230,8 +272,8 @@ public class DatabaseService {
         List<UserAccount> users = new ArrayList<>();
         String sql = "SELECT id, username, balance FROM users";
 
-        return executeWithRetry(() -> {
-            try (Statement stmt = getConnection().createStatement();
+        return executeWithConnection(conn -> {
+            try (Statement stmt = conn.createStatement();
                  ResultSet rs = stmt.executeQuery(sql)) {
                 
                 while (rs.next()) {
@@ -249,8 +291,8 @@ public class DatabaseService {
     public UserAccount getUserByUsername(String username) {
         String sql = "SELECT id, username, balance FROM users WHERE username = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, username);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -269,8 +311,8 @@ public class DatabaseService {
     public boolean createUser(String username, double initialBalance) {
         String sql = "INSERT INTO users (username, balance) VALUES (?, ?)";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, username);
                 pstmt.setDouble(2, initialBalance);
                 return pstmt.executeUpdate() > 0;
@@ -281,8 +323,8 @@ public class DatabaseService {
     public boolean updateBalance(int userId, double newBalance) {
         String sql = "UPDATE users SET balance = ? WHERE id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setDouble(1, newBalance);
                 pstmt.setInt(2, userId);
                 return pstmt.executeUpdate() > 0;
@@ -297,8 +339,8 @@ public class DatabaseService {
         
         String sql = "SELECT pin FROM users WHERE id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -318,8 +360,8 @@ public class DatabaseService {
 
     public boolean isLocked(int userId) {
         String sql = "SELECT locked FROM users WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 if (rs.next()) {
@@ -332,8 +374,8 @@ public class DatabaseService {
 
     public int getFailedAttempts(int userId) {
         String sql = "SELECT failed_attempts FROM users WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 if (rs.next()) {
@@ -346,8 +388,8 @@ public class DatabaseService {
 
     public void incrementFailedAttempts(int userId) {
         String sql = "UPDATE users SET failed_attempts = failed_attempts + 1 WHERE id = ?";
-        executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 pstmt.executeUpdate();
                 return null;
@@ -360,8 +402,8 @@ public class DatabaseService {
 
     public boolean lockAccount(int userId) {
         String sql = "UPDATE users SET locked = TRUE WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 return pstmt.executeUpdate() > 0;
             }
@@ -370,8 +412,8 @@ public class DatabaseService {
 
     public boolean unlockAccount(int userId) {
         String sql = "UPDATE users SET locked = FALSE, failed_attempts = 0, lock_until = NULL, lock_count = 0 WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 return pstmt.executeUpdate() > 0;
             }
@@ -380,8 +422,8 @@ public class DatabaseService {
 
     public boolean lockAccount(int userId, long lockUntil, int lockCount) {
         String sql = "UPDATE users SET locked = TRUE, lock_until = FROM_UNIXTIME(?/1000), lock_count = ? WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setLong(1, lockUntil);
                 pstmt.setInt(2, lockCount);
                 pstmt.setInt(3, userId);
@@ -392,8 +434,8 @@ public class DatabaseService {
 
     public long getLockUntil(int userId) {
         String sql = "SELECT lock_until FROM users WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 if (rs.next() && rs.getTimestamp("lock_until") != null) {
@@ -406,8 +448,8 @@ public class DatabaseService {
 
     public int getLockCount(int userId) {
         String sql = "SELECT lock_count FROM users WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 if (rs.next()) {
@@ -420,8 +462,8 @@ public class DatabaseService {
 
     public boolean resetFailedAttempts(int userId) {
         String sql = "UPDATE users SET failed_attempts = 0 WHERE id = ?";
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 return pstmt.executeUpdate() > 0;
             }
@@ -446,8 +488,8 @@ public class DatabaseService {
         String hashedPin = EncryptionUtil.hashPin(newPin);
         String sql = "UPDATE users SET pin = ? WHERE id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, hashedPin);
                 pstmt.setInt(2, userId);
                 return pstmt.executeUpdate() > 0;
@@ -458,8 +500,8 @@ public class DatabaseService {
     public boolean saveTransaction(Transaction tx, int userId) {
         String sql = "INSERT INTO transactions (tx_id, type, amount, status, from_user, to_user, user_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, tx.getId());
                 pstmt.setString(2, tx.getType());
                 pstmt.setDouble(3, tx.getAmount());
@@ -476,8 +518,8 @@ public class DatabaseService {
         List<Transaction> transactions = new ArrayList<>();
         String sql = "SELECT tx_id, type, amount, status, from_user, to_user, timestamp FROM transactions WHERE user_id = ? ORDER BY timestamp DESC";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -501,8 +543,8 @@ public class DatabaseService {
     public double getSystemBalance() {
         String sql = "SELECT balance FROM system_accounts WHERE account_name = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, SYSTEM_ACCOUNT);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -517,8 +559,8 @@ public class DatabaseService {
     public boolean updateSystemBalance(double newBalance) {
         String sql = "UPDATE system_accounts SET balance = ? WHERE account_name = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setDouble(1, newBalance);
                 pstmt.setString(2, SYSTEM_ACCOUNT);
                 return pstmt.executeUpdate() > 0;
@@ -529,8 +571,8 @@ public class DatabaseService {
     public double getSavingsBalance(int userId) {
         String sql = "SELECT COALESCE(SUM(balance), 0) as total FROM savings WHERE user_id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -545,8 +587,8 @@ public class DatabaseService {
     public boolean createSavingsAccount(int userId) {
         String sql = "INSERT IGNORE INTO savings (user_id, balance) VALUES (?, 0.00)";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 return pstmt.executeUpdate() > 0;
             }
@@ -556,8 +598,8 @@ public class DatabaseService {
     public boolean depositToSavings(int userId, double amount) {
         if (amount <= 0) return false;
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(
                     "INSERT INTO savings (user_id, balance) VALUES (?, ?) ON DUPLICATE KEY UPDATE balance = balance + ?")) {
                 pstmt.setInt(1, userId);
                 pstmt.setDouble(2, amount);
@@ -573,8 +615,8 @@ public class DatabaseService {
         double current = getSavingsBalance(userId);
         if (current < amount) return false;
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(
                     "UPDATE savings SET balance = balance - ? WHERE user_id = ? AND balance >= ?")) {
                 pstmt.setDouble(1, amount);
                 pstmt.setInt(2, userId);
@@ -587,8 +629,8 @@ public class DatabaseService {
     public boolean updateSavingsInterest(int userId, double newRate) {
         String sql = "UPDATE savings SET interest_rate = ? WHERE user_id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setDouble(1, newRate);
                 pstmt.setInt(2, userId);
                 return pstmt.executeUpdate() > 0;
@@ -599,8 +641,8 @@ public class DatabaseService {
     public double getSavingsInterestRate(int userId) {
         String sql = "SELECT interest_rate FROM savings WHERE user_id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -616,8 +658,8 @@ public class DatabaseService {
         double eachAmount = totalAmount / splitCount;
         String sql = "INSERT INTO bill_splits (creator_id, total_amount, split_count, title) VALUES (?, ?, ?, ?)";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setInt(1, creatorId);
                 pstmt.setDouble(2, totalAmount);
                 pstmt.setInt(3, splitCount);
@@ -636,8 +678,8 @@ public class DatabaseService {
     public boolean addParticipant(int splitId, int userId, double amount) {
         String sql = "INSERT INTO bill_split_participants (split_id, user_id, amount) VALUES (?, ?, ?)";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, splitId);
                 pstmt.setInt(2, userId);
                 pstmt.setDouble(3, amount);
@@ -649,8 +691,8 @@ public class DatabaseService {
     public boolean paySplitShare(int splitId, int userId) {
         String sql = "UPDATE bill_split_participants SET paid = TRUE WHERE split_id = ? AND user_id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, splitId);
                 pstmt.setInt(2, userId);
                 return pstmt.executeUpdate() > 0;
@@ -661,8 +703,8 @@ public class DatabaseService {
     public boolean isSplitPaid(int splitId) {
         String sql = "SELECT COUNT(*) as total, SUM(CASE WHEN paid THEN 1 ELSE 0 END) as paid_count FROM bill_split_participants WHERE split_id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, splitId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -680,8 +722,8 @@ public class DatabaseService {
         String sql = "SELECT b.title, b.total_amount, b.split_count, b.status, u.username as creator " +
                    "FROM bill_splits b JOIN users u ON b.creator_id = u.id WHERE b.id = ?";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, splitId);
                 ResultSet rs = pstmt.executeQuery();
                 
@@ -707,8 +749,8 @@ public class DatabaseService {
                     "FROM bill_splits b WHERE b.creator_id = ? OR b.id IN " +
                     "(SELECT split_id FROM bill_split_participants WHERE user_id = ?)";
         
-        return executeWithRetry(() -> {
-            try (PreparedStatement pstmt = getConnection().prepareStatement(sql)) {
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
                 pstmt.setInt(2, userId);
                 ResultSet rs = pstmt.executeQuery();
