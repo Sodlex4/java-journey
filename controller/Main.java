@@ -335,14 +335,18 @@ public class Main {
     public static int getValidInt(Scanner scanner, String message) {
         while (true) {
             System.out.print(message);
-            if (scanner.hasNextInt()) {
-                int value = scanner.nextInt();
-                scanner.nextLine();
-                return value;
-            } else {
+            if (!scanner.hasNextInt()) {
+                if (!scanner.hasNextLine()) {
+                    System.out.println("\nGoodbye!");
+                    System.exit(0);
+                }
                 System.out.println("Invalid option.");
                 scanner.next();
+                continue;
             }
+            int value = scanner.nextInt();
+            scanner.nextLine();
+            return value;
         }
     }
 }
