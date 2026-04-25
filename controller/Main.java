@@ -87,9 +87,9 @@ public class Main {
         UserAccount user1 = users.get(0);
         UserAccount user2 = users.size() > 1 ? users.get(1) : null;
 
-        user1.setTransactions(dbService.getUserTransactions(user1.getId()));
+        user1.setTransactions(dbService.getUserTransactions(user1.getId(), 100));
         if (user2 != null) {
-            user2.setTransactions(dbService.getUserTransactions(user2.getId()));
+            user2.setTransactions(dbService.getUserTransactions(user2.getId(), 100));
         }
 
         UserAccount currentUser = user1;

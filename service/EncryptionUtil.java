@@ -1,9 +1,12 @@
 package service;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Properties;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -14,7 +17,25 @@ public class EncryptionUtil {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
-    private static final byte[] KEY = deriveKeyFromPassword("M-PESA-SECURE-KEY-2024");
+    private static byte[] KEY;
+    
+    static {
+        loadKey();
+    }
+    
+    private static void loadKey() {
+        String key = System.getenv("ENCRYPTION_KEY");
+        if (key == null) {
+            Properties props = new Properties();
+            try (FileInputStream in = new FileInputStream(".env")) {
+                props.load(in);
+                key = props.getProperty("ENCRYPTION_KEY", "M-PESA-SECURE-KEY-2024");
+            } catch (IOException e) {
+                key = "M-PESA-SECURE-KEY-2024";
+            }
+        }
+        KEY = deriveKeyFromPassword(key);
+    }
 
     public static String encrypt(String plainText) {
         try {

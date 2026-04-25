@@ -71,7 +71,7 @@ public class DatabaseService {
                 stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
                     "id INT PRIMARY KEY AUTO_INCREMENT, " +
                     "username VARCHAR(50) UNIQUE NOT NULL, " +
-                    "pin VARCHAR(4) DEFAULT '1234', " +
+                    "pin VARCHAR(60) DEFAULT NULL, " +
                     "balance DECIMAL(15,2) DEFAULT 0.00, " +
                     "failed_attempts INT DEFAULT 0, " +
                     "locked BOOLEAN DEFAULT FALSE, " +
@@ -122,8 +122,9 @@ public class DatabaseService {
                     "FOREIGN KEY (user_id) REFERENCES users(id))");
 
                 stmt.execute("INSERT IGNORE INTO system_accounts (account_name, balance) VALUES ('SAFARICOM', 0.00)");
-                stmt.execute("INSERT IGNORE INTO users (username, balance) VALUES ('john', 1000.00)");
-                stmt.execute("INSERT IGNORE INTO users (username, balance) VALUES ('mary', 500.00)");
+                String defaultPinHash = EncryptionUtil.hashPin("1234");
+                stmt.execute("INSERT IGNORE INTO users (username, balance, pin) VALUES ('john', 1000.00, '" + defaultPinHash + "')");
+                stmt.execute("INSERT IGNORE INTO users (username, balance, pin) VALUES ('mary', 500.00, '" + defaultPinHash + "')");
                 
                 logger.info("Database tables ready");
             }
@@ -359,12 +360,14 @@ public class DatabaseService {
                 
                 if (rs.next()) {
                     String storedPin = rs.getString("pin");
-                    boolean valid = false;
                     
-                    if (storedPin != null) {
-                        valid = storedPin.equals(pin);
+                    if (storedPin == null || storedPin.isEmpty()) {
+                        return "1234".equals(pin);
                     }
-                    return valid;
+                    if (storedPin.startsWith("$")) {
+                        return EncryptionUtil.verifyPinHash(pin, storedPin);
+                    }
+                    return storedPin.equals(pin);
                 }
                 return false;
             }
@@ -527,13 +530,14 @@ public class DatabaseService {
         });
     }
 
-    public List<Transaction> getUserTransactions(int userId) {
+    public List<Transaction> getUserTransactions(int userId, int limit) {
         List<Transaction> transactions = new ArrayList<>();
-        String sql = "SELECT tx_id, type, amount, status, from_user, to_user, timestamp FROM transactions WHERE user_id = ? ORDER BY timestamp DESC";
+        String sql = "SELECT tx_id, type, amount, status, from_user, to_user, timestamp FROM transactions WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?";
         
         return executeWithConnection(conn -> {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1, userId);
+                pstmt.setInt(2, limit);
                 ResultSet rs = pstmt.executeQuery();
                 
                 while (rs.next()) {
