@@ -3,6 +3,9 @@ package service;
 import model.UserAccount;
 import model.Transaction;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,6 +23,8 @@ public class DatabaseService {
     private static final String DB_NAME = "mpesa_db";
     private static final int MAX_RETRIES = 3;
     private static final int RETRY_DELAY_MS = 500;
+
+    private static HikariDataSource dataSource;
 
     private static final Logger logger = Logger.getLogger(DatabaseService.class.getName());
     private volatile boolean shutdown = false;
@@ -41,6 +46,19 @@ public class DatabaseService {
             DB_USER = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
             DB_PASSWORD = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "sodlex";
         }
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(DB_URL + "/" + DB_NAME);
+        config.setUsername(DB_USER);
+        config.setPassword(DB_PASSWORD);
+        config.setDriverClassName(DRIVER);
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(3);
+        config.setConnectionTimeout(5000);
+        config.setAutoCommit(true);
+
+        dataSource = new HikariDataSource(config);
+        logger.info("HikariCP connection pool initialized");
     }
 
     private void initializeDatabase() {
@@ -114,12 +132,7 @@ public class DatabaseService {
     }
 
     public Connection getConnection() throws SQLException {
-        try {
-            Class.forName(DRIVER);
-            return DriverManager.getConnection(DB_URL + "/" + DB_NAME, DB_USER, DB_PASSWORD);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Driver not found", e);
-        }
+        return dataSource.getConnection();
     }
 
     public void releaseConnection(Connection conn) {
@@ -771,6 +784,9 @@ public class DatabaseService {
 
     public void close() {
         shutdown = true;
-        logger.info("DatabaseService closed");
+        if (dataSource != null) {
+            dataSource.close();
+            logger.info("HikariCP connection pool closed");
+        }
     }
 }
