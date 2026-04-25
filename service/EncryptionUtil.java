@@ -7,6 +7,7 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class EncryptionUtil {
 
@@ -61,17 +62,11 @@ public class EncryptionUtil {
     }
 
     public static String hashPin(String pin) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest((pin + "SALT-2024").getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            throw new RuntimeException("Hashing failed", e);
-        }
+        return BCrypt.hashpw(pin, BCrypt.gensalt(12));
     }
 
     public static boolean verifyPinHash(String inputPin, String storedHash) {
-        return hashPin(inputPin).equals(storedHash);
+        return BCrypt.checkpw(inputPin, storedHash);
     }
 
     private static byte[] deriveKeyFromPassword(String password) {
