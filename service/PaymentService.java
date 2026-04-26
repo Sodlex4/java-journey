@@ -1,6 +1,5 @@
 package service;
 
-import java.sql.SQLException;
 import model.Transaction;
 import model.UserAccount;
 import java.util.List;
@@ -57,17 +56,15 @@ public class PaymentService {
     }
 
     public String withdraw(UserAccount user, double amount, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
         if (dbService.isLocked(user.getId())) {
             return "Account locked. Contact support.";
         }
-        int attempts = dbService.getFailedAttempts(user.getId());
         if (!dbService.verifyPin(user.getId(), pin)) {
             transactionService.recordTransaction(user, "WITHDRAW", amount, "FAILED", user.getUsername(), null);
-            int remaining = 3 - attempts;
-            if (remaining <= 0) {
-                return "Account locked. Contact support.";
-            }
-            return "Incorrect PIN. " + remaining + " attempt(s) remaining.";
+            return "Incorrect PIN.";
         }
         if (amount <= 0) {
             transactionService.recordTransaction(user, "WITHDRAW", amount, "FAILED", user.getUsername(), null);
@@ -95,21 +92,19 @@ public class PaymentService {
     }
 
     public String withdraw(UserAccount user, double amount) {
-        return withdraw(user, amount, "1234");
+        return withdraw(user, amount, null);
     }
 
     public String sendMoney(UserAccount from, UserAccount to, double amount, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
         if (dbService.isLocked(from.getId())) {
             return "Account locked. Contact support.";
         }
-        int attempts = dbService.getFailedAttempts(from.getId());
         if (!dbService.verifyPin(from.getId(), pin)) {
             transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
-            int remaining = 3 - attempts;
-            if (remaining <= 0) {
-                return "Account locked. Contact support.";
-            }
-            return "Incorrect PIN. " + remaining + " attempt(s) remaining.";
+            return "Incorrect PIN.";
         }
         if (amount <= 0) {
             transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
@@ -137,7 +132,6 @@ public class PaymentService {
         }
 
         if (!depositSuccess) {
-            // ATOMICITY: Rollback - restore money to sender
             accountService.refund(from, amount, fee);
             transactionService.recordTransaction(from, "TRANSFER", amount, "FAILED", from.getUsername(), to.getUsername());
             return "M-PESA FAILED: Transfer failed. Money refunded.";
@@ -159,15 +153,21 @@ public class PaymentService {
     }
 
     public String sendMoney(UserAccount from, UserAccount to, double amount) {
-        return sendMoney(from, to, amount, "1234");
+        return sendMoney(from, to, amount, null);
     }
 
-    public String buyAirtime(UserAccount user, double amount) {
+    public String buyAirtime(UserAccount user, double amount, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
         if (amount <= 0) {
             return "Invalid amount.";
         }
         if (amount > MAX_AMOUNT) {
             return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
+        }
+        if (!dbService.verifyPin(user.getId(), pin)) {
+            return "Incorrect PIN.";
         }
 
         double fee = feeCalculator.calculate(amount);
@@ -189,12 +189,18 @@ public class PaymentService {
         return result;
     }
 
-    public String lipaNaMpesa(UserAccount user, double amount, String business) {
+public String lipaNaMpesa(UserAccount user, double amount, String business, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
         if (amount <= 0) {
             return "Invalid amount.";
         }
         if (amount > MAX_AMOUNT) {
             return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
+        }
+        if (!dbService.verifyPin(user.getId(), pin)) {
+            return "Incorrect PIN.";
         }
 
         double fee = feeCalculator.calculate(amount);
@@ -216,38 +222,24 @@ public class PaymentService {
         return result;
     }
 
-    public String requestLoan(UserAccount user, double amount) {
-        if (amount > 1000) {
-            transactionService.recordTransaction(user, "LOAN", amount, "FAILED", "SYSTEM", user.getUsername());
-            return "Loan denied.";
+    public String lipaNaMpesa(UserAccount user, double amount, String business) {
+        return lipaNaMpesa(user, amount, business, null);
+    }
+
+    public String depositToSavings(UserAccount user, double amount, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
         }
-
-        accountService.deposit(user, amount);
-        Transaction tx = transactionService.createTransaction("LOAN", amount, "SUCCESS", "SYSTEM", user.getUsername());
-        transactionService.addTransaction(user, tx);
-        saveToDb(tx, user.getId());
-
-        return "Loan approved\nTXID: " + tx.getId();
-    }
-
-    public double checkBalance(UserAccount user) {
-        return accountService.checkBalance(user);
-    }
-
-    public void printTransactions(UserAccount user) {
-        transactionService.printTransactions(user);
-    }
-
-    public String depositToSavings(UserAccount user, double amount) {
         if (amount <= 0) {
             return "Invalid amount.";
         }
         if (amount > MAX_AMOUNT) {
             return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
         }
+        if (!dbService.verifyPin(user.getId(), pin)) {
+            return "Incorrect PIN.";
+        }
 
-        double fee = feeCalculator.calculate(amount);
-        
         if (!accountService.withdraw(user, amount, 0)) {
             return "Insufficient funds.";
         }
@@ -271,9 +263,19 @@ public class PaymentService {
         return "Saved to Simi\nAmount: KES " + amount + "\nInterest: " + dbService.getSavingsInterestRate(user.getId()) + "% p.a.";
     }
 
-    public String withdrawFromSavings(UserAccount user, double amount) {
+    public String depositToSavings(UserAccount user, double amount) {
+        return depositToSavings(user, amount, null);
+    }
+
+    public String withdrawFromSavings(UserAccount user, double amount, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
         if (amount <= 0) {
             return "Invalid amount.";
+        }
+        if (!dbService.verifyPin(user.getId(), pin)) {
+            return "Incorrect PIN.";
         }
 
         double savingsBalance = dbService.getSavingsBalance(user.getId());
@@ -296,6 +298,10 @@ public class PaymentService {
         return "Withdrawn from Simi\nAmount: KES " + amount + "\nNew balance: KES " + dbService.getSavingsBalance(user.getId());
     }
 
+    public String withdrawFromSavings(UserAccount user, double amount) {
+        return withdrawFromSavings(user, amount, null);
+    }
+
     public String checkSavingsBalance(UserAccount user) {
         double balance = dbService.getSavingsBalance(user.getId());
         double rate = dbService.getSavingsInterestRate(user.getId());
@@ -304,12 +310,18 @@ public class PaymentService {
         return "Simi Savings\nBalance: KES " + balance + "\nInterest Rate: " + rate + "% p.a.\nProjected Annual Interest: KES " + annualInterest;
     }
 
-    public String createBillSplit(UserAccount creator, int participantCount, double totalAmount, String title) {
+    public String createBillSplit(UserAccount creator, int participantCount, double totalAmount, String title, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
         if (totalAmount <= 0) {
             return "Invalid amount.";
         }
         if (totalAmount > MAX_AMOUNT) {
             return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
+        }
+        if (!dbService.verifyPin(creator.getId(), pin)) {
+            return "Incorrect PIN.";
         }
 
         double eachAmount = totalAmount / participantCount;
@@ -330,7 +342,17 @@ public class PaymentService {
                "\nSplit " + participantCount + " ways: KES " + eachAmount + " each\nSplit ID: " + splitId;
     }
 
-    public String payBillSplit(UserAccount user, int splitId) {
+    public String createBillSplit(UserAccount creator, int participantCount, double totalAmount, String title) {
+        return createBillSplit(creator, participantCount, totalAmount, title, null);
+    }
+
+    public String payBillSplit(UserAccount user, int splitId, String pin) {
+        if (pin == null || pin.isEmpty()) {
+            return "PIN required.";
+        }
+        if (!dbService.verifyPin(user.getId(), pin)) {
+            return "Incorrect PIN.";
+        }
         if (!dbService.paySplitShare(splitId, user.getId())) {
             return "Payment failed.";
         }
@@ -340,6 +362,10 @@ public class PaymentService {
         saveToDb(tx, user.getId());
 
         return "BillSplit Paid\nSplit ID: " + splitId;
+    }
+
+    public String payBillSplit(UserAccount user, int splitId) {
+        return payBillSplit(user, splitId, null);
     }
 
     public String viewBillSplits(UserAccount user) {
@@ -356,4 +382,25 @@ public class PaymentService {
         return sb.toString();
     }
 
+    public String requestLoan(UserAccount user, double amount) {
+        if (amount > 1000) {
+            transactionService.recordTransaction(user, "LOAN", amount, "FAILED", "SYSTEM", user.getUsername());
+            return "Loan denied.";
+        }
+
+        accountService.deposit(user, amount);
+        Transaction tx = transactionService.createTransaction("LOAN", amount, "SUCCESS", "SYSTEM", user.getUsername());
+        transactionService.addTransaction(user, tx);
+        saveToDb(tx, user.getId());
+
+        return "Loan approved\nTXID: " + tx.getId();
     }
+
+    public double checkBalance(UserAccount user) {
+        return accountService.checkBalance(user);
+    }
+
+    public void printTransactions(UserAccount user) {
+        transactionService.printTransactions(user);
+    }
+}

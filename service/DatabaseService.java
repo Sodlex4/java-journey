@@ -35,20 +35,35 @@ public class DatabaseService {
     }
 
     private void loadEnv() {
-        Properties props = new Properties();
-        try (InputStream in = new FileInputStream(".env")) {
-            props.load(in);
-            DB_URL = props.getProperty("DB_URL", "jdbc:mariadb://localhost:3306");
-            DB_USER = props.getProperty("DB_USER", "root");
-            DB_PASSWORD = props.getProperty("DB_PASSWORD", "sodlex");
-        } catch (IOException e) {
-            DB_URL = System.getenv("DB_URL") != null ? System.getenv("DB_URL") : "jdbc:mariadb://localhost:3306";
-            DB_USER = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
-            DB_PASSWORD = System.getenv("DB_PASSWORD") != null ? System.getenv("DB_PASSWORD") : "sodlex";
+        DB_URL = System.getenv("DB_URL");
+        DB_USER = System.getenv("DB_USER");
+        DB_PASSWORD = System.getenv("DB_PASSWORD");
+        boolean useSSL = "true".equalsIgnoreCase(System.getenv("DB_SSL"));
+        boolean requireSSL = "true".equalsIgnoreCase(System.getenv("DB_REQUIRE_SSL"));
+
+        if (DB_URL == null || DB_USER == null || DB_PASSWORD == null) {
+            Properties props = new Properties();
+            try (InputStream in = new FileInputStream(".env")) {
+                props.load(in);
+            } catch (IOException e) {
+                // Fallback to default - will fail gracefully if missing
+            }
+            if (DB_URL == null) DB_URL = props.getProperty("DB_URL", "jdbc:mariadb://localhost:3306");
+            if (DB_USER == null) DB_USER = props.getProperty("DB_USER", "root");
+            if (DB_PASSWORD == null) DB_PASSWORD = props.getProperty("DB_PASSWORD", "");
+            useSSL = "true".equalsIgnoreCase(props.getProperty("DB_SSL", "false"));
+            requireSSL = "true".equalsIgnoreCase(props.getProperty("DB_REQUIRE_SSL", "false"));
         }
 
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(DB_URL + "/" + DB_NAME);
+        String dbFullUrl = DB_URL + "/" + DB_NAME;
+        if (useSSL || requireSSL) {
+            dbFullUrl += (dbFullUrl.contains("?") ? "&" : "?") + "useSSL=" + useSSL;
+            if (requireSSL) {
+                dbFullUrl += "&requireSSL=true";
+            }
+        }
+        config.setJdbcUrl(dbFullUrl);
         config.setUsername(DB_USER);
         config.setPassword(DB_PASSWORD);
         config.setDriverClassName(DRIVER);
@@ -58,7 +73,7 @@ public class DatabaseService {
         config.setAutoCommit(true);
 
         dataSource = new HikariDataSource(config);
-        logger.info("HikariCP connection pool initialized");
+        logger.info("HikariCP connection pool initialized" + (useSSL ? " with SSL/TLS" : ""));
     }
 
     private void initializeDatabase() {
@@ -323,12 +338,48 @@ public class DatabaseService {
     }
 
     public boolean createUser(String username, double initialBalance) {
-        String sql = "INSERT INTO users (username, balance) VALUES (?, ?)";
+        if (username == null || !isValidUsername(username)) {
+            return false;
+        }
+        
+        String pin = EncryptionUtil.hashPin("1234");
+        String sql = "INSERT INTO users (username, balance, pin) VALUES (?, ?, ?)";
         
         return executeWithConnection(conn -> {
             try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setString(1, username);
                 pstmt.setDouble(2, initialBalance);
+                pstmt.setString(3, pin);
+                return pstmt.executeUpdate() > 0;
+            }
+        });
+    }
+
+    private boolean isValidUsername(String username) {
+        if (username == null || username.length() < 3 || username.length() > 50) {
+            return false;
+        }
+        return username.matches("^[a-zA-Z0-9_]+$");
+    }
+
+    public boolean registerUser(String username, String pin) {
+        if (username == null || pin == null) {
+            return false;
+        }
+        if (!isValidUsername(username)) {
+            return false;
+        }
+        if (pin.length() != 4 || !pin.matches("\\d{4}")) {
+            return false;
+        }
+        
+        String hashedPin = EncryptionUtil.hashPin(pin);
+        
+        return executeWithConnection(conn -> {
+            try (PreparedStatement pstmt = conn.prepareStatement(
+                    "INSERT INTO users (username, balance, pin) VALUES (?, 0.00, ?)")) {
+                pstmt.setString(1, username);
+                pstmt.setString(2, hashedPin);
                 return pstmt.executeUpdate() > 0;
             }
         });
@@ -581,6 +632,61 @@ public class DatabaseService {
                 pstmt.setDouble(1, newBalance);
                 pstmt.setString(2, SYSTEM_ACCOUNT);
                 return pstmt.executeUpdate() > 0;
+            }
+        });
+    }
+
+    public boolean transferMoneyAtomic(int fromUserId, int toUserId, double amount, double fee) {
+        return executeInTransaction(() -> {
+            Connection conn = null;
+            try {
+                conn = getConnection();
+                try (PreparedStatement withdrawStmt = conn.prepareStatement(
+                        "UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?");
+                     PreparedStatement depositStmt = conn.prepareStatement(
+                        "UPDATE users SET balance = balance + ? WHERE id = ?");
+                     PreparedStatement feeStmt = conn.prepareStatement(
+                        "UPDATE system_accounts SET balance = balance + ? WHERE account_name = ?")) {
+                    
+                    withdrawStmt.setDouble(1, amount + fee);
+                    withdrawStmt.setInt(2, fromUserId);
+                    withdrawStmt.setDouble(3, amount + fee);
+                    int withdrawn = withdrawStmt.executeUpdate();
+                    
+                    if (withdrawn == 0) {
+                        return false;
+                    }
+                    
+                    depositStmt.setDouble(1, amount);
+                    depositStmt.setInt(2, toUserId);
+                    depositStmt.executeUpdate();
+                    
+                    if (fee > 0) {
+                        feeStmt.setDouble(1, fee);
+                        feeStmt.setString(2, SYSTEM_ACCOUNT);
+                        feeStmt.executeUpdate();
+                    }
+                    
+                    return true;
+                }
+            } catch (SQLException e) {
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException se) {
+                        logger.severe("Rollback failed: " + se.getMessage());
+                    }
+                }
+                throw new RuntimeException("Transfer failed", e);
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.setAutoCommit(true);
+                        conn.close();
+                    } catch (SQLException e) {
+                        logger.warning("Failed to release connection: " + e.getMessage());
+                    }
+                }
             }
         });
     }

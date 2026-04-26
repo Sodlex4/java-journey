@@ -113,7 +113,7 @@ public class Main {
                     showReportsMenu(scanner, service, currentUser, safaricom);
                     break;
                 case 5:
-                    showSettingsMenu(scanner, currentUser, user1, user2);
+                    showSettingsMenu(scanner, currentUser, dbService, user1, user2);
                     break;
                 case 0:
                     dbService.updateSystemBalance(safaricom.getBalance());
@@ -165,21 +165,24 @@ public class Main {
                 case 3:
                     double withdrawAmount = getValidDouble(scanner, "Enter amount: ");
                     if (!verifyPinWithAttempts(scanner, dbService, currentUser, 3)) break;
-                    System.out.println(service.withdraw(currentUser, withdrawAmount));
+                    String withdrawPin = readPin(scanner, "");
+                    System.out.println(service.withdraw(currentUser, withdrawAmount, withdrawPin));
                     dbService.updateBalance(currentUser.getId(), currentUser.getBalance());
                     break;
                 case 4:
                     if (user2 == null) { System.out.println("No second user."); break; }
                     double sendAmount = getValidDouble(scanner, "Enter amount: ");
                     if (!verifyPinWithAttempts(scanner, dbService, currentUser, 3)) break;
-                    System.out.println(service.sendMoney(currentUser, user2, sendAmount));
+                    String sendPin = readPin(scanner, "");
+                    System.out.println(service.sendMoney(currentUser, user2, sendAmount, sendPin));
                     dbService.updateBalance(currentUser.getId(), currentUser.getBalance());
                     dbService.updateBalance(user2.getId(), user2.getBalance());
                     break;
                 case 5:
                     double airtime = getValidDouble(scanner, "Enter airtime amount: ");
                     if (!verifyPinWithAttempts(scanner, dbService, currentUser, 3)) break;
-                    System.out.println(service.buyAirtime(currentUser, airtime));
+                    String airtimePin = readPin(scanner, "");
+                    System.out.println(service.buyAirtime(currentUser, airtime, airtimePin));
                     dbService.updateBalance(currentUser.getId(), currentUser.getBalance());
                     break;
                 default:
@@ -298,10 +301,11 @@ public class Main {
     }
 
     private static void showSettingsMenu(Scanner scanner, UserAccount currentUser, 
-            UserAccount user1, UserAccount user2) {
+            DatabaseService dbService, UserAccount user1, UserAccount user2) {
         while (true) {
             System.out.println("\n=== SETTINGS ===");
             System.out.println("1. Switch User");
+            System.out.println("2. Register New User");
             System.out.println("0. Back");
             
             int choice = getValidInt(scanner, "Choice: ");
@@ -311,6 +315,18 @@ public class Main {
                 case 1:
                     currentUser = (currentUser == user1) ? user2 : user1;
                     System.out.println("Switched to " + currentUser.getUsername());
+                    break;
+                case 2:
+                    System.out.print("New username: ");
+                    String newUsername = scanner.nextLine();
+                    System.out.print("Initial balance (KES): ");
+                    double initialBalance = getValidDouble(scanner, "");
+                    boolean created = dbService.createUser(newUsername, initialBalance);
+                    if (created) {
+                        System.out.println("User registered. Default PIN: 1234");
+                    } else {
+                        System.out.println("Registration failed. Use 3-50 alphanumeric characters.");
+                    }
                     break;
                 default:
                     System.out.println("Invalid option!");
