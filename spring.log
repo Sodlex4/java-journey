@@ -1,0 +1,133 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.fusesource.jansi.internal.JansiLoader in an unnamed module (file:/home/sodlex/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/lib/jansi-2.4.0.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper (file:/home/sodlex/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/lib/guava-32.0.1-jre.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.common.util.concurrent.AbstractFuture$UnsafeAtomicHelper
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< com.mpesa:payment-system >----------------------
+[INFO] Building payment-system 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.4.13:run (default-cli) > test-compile @ payment-system >>>
+Downloading from central: https://repo.maven.apache.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.4.1/mariadb-java-client-3.4.1.pom
+Progress (1): 1.2 kBProgress (1): 2.5 kBProgress (1): 5.1 kBProgress (1): 8.2 kBProgress (1): 10.0 kBProgress (1): 15 kB  Progress (1): 24 kBProgress (1): 27 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.4.1/mariadb-java-client-3.4.1.pom (27 kB at 12 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.7.0/junit-bom-5.7.0.pom
+Progress (1): 914 BProgress (1): 2.2 kBProgress (1): 5.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/junit/junit-bom/5.7.0/junit-bom-5.7.0.pom (5.1 kB at 23 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/software/amazon/awssdk/bom/2.21.1/bom-2.21.1.pom
+Progress (1): 705 BProgress (1): 1.5 kBProgress (1): 16 kB Progress (1): 33 kBProgress (1): 45 kBProgress (1): 61 kBProgress (1): 75 kBProgress (1): 85 kBProgress (1): 88 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/software/amazon/awssdk/bom/2.21.1/bom-2.21.1.pom (88 kB at 300 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/software/amazon/awssdk/aws-sdk-java-pom/2.21.1/aws-sdk-java-pom-2.21.1.pom
+Progress (1): 791 BProgress (1): 1.5 kBProgress (1): 3.9 kBProgress (1): 5.6 kBProgress (1): 6.9 kBProgress (1): 8.9 kBProgress (1): 12 kB Progress (1): 14 kBProgress (1): 21 kBProgress (1): 26 kBProgress (1): 28 kBProgress (1): 32 kBProgress (1): 37 kBProgress (1): 39 kBProgress (1): 46 kBProgress (1): 53 kBProgress (1): 57 kBProgress (1): 66 kBProgress (1): 74 kBProgress (1): 77 kBProgress (1): 78 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/software/amazon/awssdk/aws-sdk-java-pom/2.21.1/aws-sdk-java-pom-2.21.1.pom (78 kB at 299 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/github/waffle/waffle-jna/3.3.0/waffle-jna-3.3.0.pom
+Progress (1): 830 BProgress (1): 1.5 kBProgress (1): 3.4 kBProgress (1): 5.6 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/github/waffle/waffle-jna/3.3.0/waffle-jna-3.3.0.pom (5.6 kB at 24 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/github/waffle/waffle-parent/3.3.0/waffle-parent-3.3.0.pom
+Progress (1): 784 BProgress (1): 1.3 kBProgress (1): 3.0 kBProgress (1): 5.6 kBProgress (1): 7.0 kBProgress (1): 9.1 kBProgress (1): 11 kB Progress (1): 13 kBProgress (1): 17 kBProgress (1): 22 kBProgress (1): 26 kBProgress (1): 34 kBProgress (1): 39 kBProgress (1): 45 kBProgress (1): 50 kBProgress (1): 58 kBProgress (1): 61 kBProgress (1): 64 kBProgress (1): 71 kBProgress (1): 73 kB                   Downloaded from central: https://repo.maven.apache.org/maven2/com/github/waffle/waffle-parent/3.3.0/waffle-parent-3.3.0.pom (73 kB at 285 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/slf4j/jcl-over-slf4j/2.0.17/jcl-over-slf4j-2.0.17.pom
+Progress (1): 1.3 kBProgress (1): 1.7 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/slf4j/jcl-over-slf4j/2.0.17/jcl-over-slf4j-2.0.17.pom (1.7 kB at 7.8 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.pom
+Progress (1): 980 BProgress (1): 2.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.pom (2.1 kB at 10 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.pom
+Progress (1): 940 BProgress (1): 2.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.pom (2.1 kB at 11 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.pom
+Progress (1): 840 BProgress (1): 1.8 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.pom (1.8 kB at 9.1 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_parent/2.21.1/error_prone_parent-2.21.1.pom
+Progress (1): 722 BProgress (1): 1.6 kBProgress (1): 3.6 kBProgress (1): 5.8 kBProgress (1): 9.9 kBProgress (1): 13 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_parent/2.21.1/error_prone_parent-2.21.1.pom (13 kB at 57 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.32.0/checker-qual-3.32.0.pom
+Progress (1): 952 BProgress (1): 2.1 kB                    Downloaded from central: https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.32.0/checker-qual-3.32.0.pom (2.1 kB at 11 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.4.1/mariadb-java-client-3.4.1.jar
+Progress (1): 3.8/699 kBProgress (1): 8.0/699 kBProgress (1): 12/699 kB Progress (1): 16/699 kBProgress (1): 21/699 kBProgress (1): 25/699 kBProgress (1): 29/699 kBProgress (1): 33/699 kBProgress (1): 38/699 kBProgress (1): 42/699 kBProgress (1): 46/699 kBProgress (1): 50/699 kBProgress (1): 54/699 kBProgress (1): 57/699 kBProgress (1): 62/699 kBProgress (1): 66/699 kBProgress (1): 70/699 kBProgress (1): 74/699 kBProgress (1): 78/699 kBProgress (1): 83/699 kBProgress (1): 87/699 kBProgress (1): 91/699 kBProgress (1): 95/699 kBProgress (1): 100/699 kBProgress (1): 104/699 kBProgress (1): 108/699 kBProgress (1): 112/699 kBProgress (1): 117/699 kBProgress (1): 121/699 kBProgress (1): 125/699 kBProgress (1): 129/699 kBProgress (1): 133/699 kBProgress (1): 138/699 kBProgress (1): 142/699 kBProgress (1): 146/699 kBProgress (1): 150/699 kBProgress (1): 167/699 kBProgress (1): 183/699 kBProgress (1): 188/699 kBProgress (1): 205/699 kBProgress (1): 221/699 kBProgress (1): 238/699 kBProgress (1): 254/699 kBProgress (1): 270/699 kBProgress (1): 287/699 kBProgress (1): 303/699 kBProgress (1): 319/699 kBProgress (1): 336/699 kBProgress (1): 352/699 kBProgress (1): 369/699 kBProgress (1): 385/699 kBProgress (1): 401/699 kBProgress (1): 418/699 kBProgress (1): 434/699 kBProgress (1): 451/699 kBProgress (1): 467/699 kBProgress (1): 483/699 kBProgress (1): 500/699 kBProgress (1): 516/699 kBProgress (1): 532/699 kBProgress (1): 549/699 kBProgress (1): 565/699 kBProgress (1): 582/699 kBProgress (1): 598/699 kBProgress (1): 614/699 kBProgress (1): 631/699 kBProgress (1): 647/699 kBProgress (1): 664/699 kBProgress (1): 680/699 kBProgress (1): 696/699 kBProgress (1): 699 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.4.1/mariadb-java-client-3.4.1.jar (699 kB at 603 kB/s)
+Downloading from central: https://repo.maven.apache.org/maven2/com/github/waffle/waffle-jna/3.3.0/waffle-jna-3.3.0.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/slf4j/jcl-over-slf4j/2.0.17/jcl-over-slf4j-2.0.17.jar
+Downloading from central: https://repo.maven.apache.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.jar
+Downloading from central: https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.jar
+Downloading from central: https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.32.0/checker-qual-3.32.0.jar
+Progress (1): 7.7/72 kBProgress (1): 16/72 kB Progress (1): 25/72 kBProgress (1): 41/72 kBProgress (1): 57/72 kBProgress (1): 72 kB                      Downloaded from central: https://repo.maven.apache.org/maven2/com/github/waffle/waffle-jna/3.3.0/waffle-jna-3.3.0.jar (72 kB at 141 kB/s)
+Progress (1): 0.9/224 kBProgress (1): 2.3/224 kBProgress (1): 3.6/224 kBProgress (1): 5.0/224 kBProgress (1): 6.4/224 kBProgress (1): 7.7/224 kBProgress (1): 9.1/224 kBProgress (1): 10/224 kB Progress (1): 12/224 kBProgress (1): 13/224 kBProgress (1): 15/224 kBProgress (1): 16/224 kBProgress (1): 17/224 kBProgress (1): 19/224 kBProgress (1): 20/224 kBProgress (1): 21/224 kBProgress (1): 23/224 kBProgress (1): 24/224 kBProgress (1): 26/224 kBProgress (1): 27/224 kBProgress (1): 28/224 kBProgress (1): 30/224 kBProgress (1): 31/224 kBProgress (1): 32/224 kBProgress (1): 33/224 kBProgress (1): 35/224 kBProgress (1): 36/224 kBProgress (1): 37/224 kBProgress (1): 39/224 kBProgress (1): 40/224 kBProgress (1): 41/224 kBProgress (1): 43/224 kBProgress (1): 44/224 kBProgress (1): 46/224 kBProgress (1): 47/224 kBProgress (1): 48/224 kBProgress (1): 50/224 kBProgress (1): 51/224 kBProgress (1): 52/224 kBProgress (1): 54/224 kBProgress (1): 55/224 kBProgress (1): 59/224 kBProgress (1): 64/224 kBProgress (1): 68/224 kBProgress (2): 68/224 kB | 0.9/889 kBProgress (2): 68/224 kB | 2.3/889 kBProgress (2): 68/224 kB | 3.6/889 kBProgress (2): 68/224 kB | 5.0/889 kBProgress (2): 68/224 kB | 6.4/889 kBProgress (2): 68/224 kB | 7.7/889 kBProgress (3): 68/224 kB | 7.7/889 kB | 0.9/17 kBProgress (3): 68/224 kB | 9.1/889 kB | 0.9/17 kBProgress (3): 68/224 kB | 9.1/889 kB | 2.3/17 kBProgress (3): 68/224 kB | 10/889 kB | 2.3/17 kB Progress (3): 68/224 kB | 10/889 kB | 3.2/17 kBProgress (3): 68/224 kB | 12/889 kB | 3.2/17 kBProgress (3): 68/224 kB | 12/889 kB | 4.6/17 kBProgress (3): 68/224 kB | 13/889 kB | 4.6/17 kBProgress (3): 68/224 kB | 13/889 kB | 5.9/17 kBProgress (3): 68/224 kB | 15/889 kB | 5.9/17 kBProgress (3): 68/224 kB | 15/889 kB | 7.3/17 kBProgress (3): 68/224 kB | 16/889 kB | 7.3/17 kBProgress (3): 68/224 kB | 16/889 kB | 8.7/17 kBProgress (3): 68/224 kB | 17/889 kB | 8.7/17 kBProgress (3): 68/224 kB | 17/889 kB | 10/17 kB Progress (3): 68/224 kB | 19/889 kB | 10/17 kBProgress (3): 68/224 kB | 19/889 kB | 11/17 kBProgress (3): 72/224 kB | 19/889 kB | 11/17 kBProgress (3): 72/224 kB | 20/889 kB | 11/17 kBProgress (3): 76/224 kB | 20/889 kB | 11/17 kBProgress (3): 76/224 kB | 20/889 kB | 13/17 kBProgress (3): 76/224 kB | 20/889 kB | 14/17 kBProgress (3): 76/224 kB | 21/889 kB | 14/17 kBProgress (3): 76/224 kB | 23/889 kB | 14/17 kBProgress (3): 76/224 kB | 23/889 kB | 16/17 kBProgress (4): 76/224 kB | 23/889 kB | 16/17 kB | 0.9/18 kBProgress (4): 76/224 kB | 24/889 kB | 16/17 kB | 0.9/18 kBProgress (4): 76/224 kB | 24/889 kB | 16/17 kB | 2.3/18 kBProgress (4): 76/224 kB | 24/889 kB | 16/17 kB | 3.6/18 kBProgress (4): 76/224 kB | 24/889 kB | 17 kB | 3.6/18 kB   Progress (4): 76/224 kB | 24/889 kB | 17 kB | 5.0/18 kBProgress (4): 76/224 kB | 25/889 kB | 17 kB | 5.0/18 kBProgress (4): 76/224 kB | 26/889 kB | 17 kB | 5.0/18 kBProgress (4): 76/224 kB | 26/889 kB | 17 kB | 6.4/18 kBProgress (4): 76/224 kB | 26/889 kB | 17 kB | 7.7/18 kBProgress (4): 81/224 kB | 26/889 kB | 17 kB | 7.7/18 kB                                                       Downloaded from central: https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.jar (17 kB at 16 kB/s)
+Progress (3): 81/224 kB | 27/889 kB | 7.7/18 kBProgress (3): 81/224 kB | 29/889 kB | 7.7/18 kBProgress (3): 85/224 kB | 29/889 kB | 7.7/18 kBProgress (3): 85/224 kB | 29/889 kB | 9.1/18 kBProgress (3): 85/224 kB | 29/889 kB | 10/18 kB Progress (3): 85/224 kB | 29/889 kB | 12/18 kBProgress (3): 85/224 kB | 30/889 kB | 12/18 kBProgress (3): 85/224 kB | 31/889 kB | 12/18 kBProgress (3): 85/224 kB | 33/889 kB | 12/18 kBProgress (3): 89/224 kB | 33/889 kB | 12/18 kBProgress (3): 93/224 kB | 33/889 kB | 12/18 kBProgress (3): 93/224 kB | 33/889 kB | 13/18 kBProgress (3): 93/224 kB | 33/889 kB | 15/18 kBProgress (3): 93/224 kB | 33/889 kB | 16/18 kBProgress (3): 93/224 kB | 34/889 kB | 16/18 kBProgress (3): 93/224 kB | 36/889 kB | 16/18 kBProgress (3): 93/224 kB | 37/889 kB | 16/18 kBProgress (3): 97/224 kB | 37/889 kB | 16/18 kBProgress (3): 102/224 kB | 37/889 kB | 16/18 kBProgress (3): 102/224 kB | 37/889 kB | 17/18 kBProgress (3): 102/224 kB | 37/889 kB | 18 kB   Progress (3): 102/224 kB | 38/889 kB | 18 kBProgress (3): 106/224 kB | 38/889 kB | 18 kBProgress (3): 110/224 kB | 38/889 kB | 18 kBProgress (3): 110/224 kB | 40/889 kB | 18 kBProgress (3): 110/224 kB | 41/889 kB | 18 kB                                            Downloaded from central: https://repo.maven.apache.org/maven2/org/slf4j/jcl-over-slf4j/2.0.17/jcl-over-slf4j-2.0.17.jar (18 kB at 16 kB/s)
+Progress (2): 110/224 kB | 42/889 kBProgress (2): 110/224 kB | 44/889 kBProgress (2): 110/224 kB | 45/889 kBProgress (2): 110/224 kB | 46/889 kBProgress (2): 114/224 kB | 46/889 kBProgress (2): 114/224 kB | 48/889 kBProgress (2): 114/224 kB | 49/889 kBProgress (2): 114/224 kB | 51/889 kBProgress (2): 114/224 kB | 52/889 kBProgress (2): 119/224 kB | 52/889 kBProgress (2): 119/224 kB | 53/889 kBProgress (2): 119/224 kB | 55/889 kBProgress (2): 119/224 kB | 59/889 kBProgress (2): 123/224 kB | 59/889 kBProgress (2): 127/224 kB | 59/889 kBProgress (2): 131/224 kB | 59/889 kBProgress (2): 131/224 kB | 63/889 kBProgress (2): 135/224 kB | 63/889 kBProgress (2): 140/224 kB | 63/889 kBProgress (2): 144/224 kB | 63/889 kBProgress (2): 148/224 kB | 63/889 kBProgress (2): 152/224 kB | 63/889 kBProgress (2): 157/224 kB | 63/889 kBProgress (2): 161/224 kB | 63/889 kBProgress (2): 163/224 kB | 63/889 kBProgress (2): 167/224 kB | 63/889 kBProgress (2): 171/224 kB | 63/889 kBProgress (2): 176/224 kB | 63/889 kBProgress (2): 180/224 kB | 63/889 kBProgress (2): 184/224 kB | 63/889 kBProgress (2): 188/224 kB | 63/889 kBProgress (2): 193/224 kB | 63/889 kBProgress (2): 197/224 kB | 63/889 kBProgress (2): 201/224 kB | 63/889 kBProgress (2): 205/224 kB | 63/889 kBProgress (2): 209/224 kB | 63/889 kBProgress (2): 214/224 kB | 63/889 kBProgress (2): 218/224 kB | 63/889 kBProgress (2): 222/224 kB | 63/889 kBProgress (2): 224 kB | 63/889 kB    Progress (2): 224 kB | 67/889 kBProgress (2): 224 kB | 72/889 kB                                Downloaded from central: https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.32.0/checker-qual-3.32.0.jar (224 kB at 169 kB/s)
+Progress (1): 76/889 kBProgress (1): 80/889 kBProgress (1): 82/889 kBProgress (1): 86/889 kBProgress (1): 90/889 kBProgress (1): 95/889 kBProgress (1): 99/889 kBProgress (1): 103/889 kBProgress (1): 107/889 kBProgress (1): 112/889 kBProgress (1): 116/889 kBProgress (1): 120/889 kBProgress (1): 124/889 kBProgress (1): 128/889 kBProgress (1): 133/889 kBProgress (1): 137/889 kBProgress (1): 141/889 kBProgress (1): 145/889 kBProgress (1): 147/889 kBProgress (1): 152/889 kBProgress (1): 156/889 kBProgress (1): 160/889 kBProgress (1): 164/889 kBProgress (1): 169/889 kBProgress (1): 173/889 kBProgress (1): 177/889 kBProgress (1): 181/889 kBProgress (1): 186/889 kBProgress (1): 190/889 kBProgress (1): 194/889 kBProgress (1): 198/889 kBProgress (1): 202/889 kBProgress (1): 207/889 kBProgress (1): 211/889 kBProgress (1): 215/889 kBProgress (1): 219/889 kBProgress (1): 236/889 kBProgress (1): 252/889 kBProgress (1): 269/889 kBProgress (1): 279/889 kBProgress (1): 285/889 kBProgress (1): 301/889 kBProgress (1): 318/889 kBProgress (1): 334/889 kBProgress (1): 350/889 kBProgress (1): 367/889 kBProgress (1): 383/889 kBProgress (1): 400/889 kBProgress (1): 410/889 kBProgress (1): 426/889 kBProgress (1): 442/889 kBProgress (1): 459/889 kBProgress (1): 475/889 kBProgress (1): 492/889 kBProgress (1): 508/889 kBProgress (1): 524/889 kBProgress (1): 541/889 kBProgress (1): 557/889 kBProgress (1): 573/889 kBProgress (1): 590/889 kBProgress (1): 606/889 kBProgress (1): 623/889 kBProgress (1): 639/889 kBProgress (1): 655/889 kBProgress (1): 672/889 kBProgress (1): 688/889 kBProgress (1): 705/889 kBProgress (1): 721/889 kBProgress (1): 737/889 kBProgress (1): 754/889 kBProgress (1): 770/889 kBProgress (1): 786/889 kBProgress (1): 803/889 kBProgress (1): 819/889 kBProgress (1): 836/889 kBProgress (1): 852/889 kBProgress (1): 868/889 kBProgress (1): 885/889 kBProgress (1): 889 kB                        Downloaded from central: https://repo.maven.apache.org/maven2/com/github/ben-manes/caffeine/caffeine/3.1.8/caffeine-3.1.8.jar (889 kB at 395 kB/s)
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ payment-system ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ payment-system ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ payment-system ---
+[INFO] skip non existing resourceDirectory /home/sodlex/Desktop/java-journey/projects/payment_system_java/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ payment-system ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.4.13:run (default-cli) < test-compile @ payment-system <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.4.13:run (default-cli) @ payment-system ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::               (v3.4.13)
+
+2026-04-26T21:52:43.514+03:00  INFO 47387 --- [payment-system] [           main] com.mpesa.PaymentSystemApplication       : Starting PaymentSystemApplication using Java 25.0.2 with PID 47387 (/home/sodlex/Desktop/java-journey/projects/payment_system_java/target/classes started by sodlex in /home/sodlex/Desktop/java-journey/projects/payment_system_java)
+2026-04-26T21:52:43.521+03:00  INFO 47387 --- [payment-system] [           main] com.mpesa.PaymentSystemApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-04-26T21:52:46.504+03:00  INFO 47387 --- [payment-system] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-26T21:52:46.785+03:00  INFO 47387 --- [payment-system] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 257 ms. Found 2 JPA repository interfaces.
+2026-04-26T21:52:48.697+03:00  INFO 47387 --- [payment-system] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-26T21:52:48.744+03:00  INFO 47387 --- [payment-system] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-26T21:52:48.745+03:00  INFO 47387 --- [payment-system] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.50]
+2026-04-26T21:52:48.910+03:00  INFO 47387 --- [payment-system] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-26T21:52:48.912+03:00  INFO 47387 --- [payment-system] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5107 ms
+2026-04-26T21:52:49.493+03:00  INFO 47387 --- [payment-system] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-26T21:52:49.676+03:00  INFO 47387 --- [payment-system] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.39.Final
+2026-04-26T21:52:49.776+03:00  INFO 47387 --- [payment-system] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-26T21:52:50.773+03:00  INFO 47387 --- [payment-system] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-26T21:52:50.867+03:00  INFO 47387 --- [payment-system] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-26T21:52:51.418+03:00  INFO 47387 --- [payment-system] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.mariadb.jdbc.Connection@5b322873
+2026-04-26T21:52:51.424+03:00  INFO 47387 --- [payment-system] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-26T21:52:51.540+03:00  WARN 47387 --- [payment-system] [           main] org.hibernate.orm.deprecation            : HHH90000025: MariaDBDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-26T21:52:51.606+03:00  INFO 47387 --- [payment-system] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 12.2.2
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-26T21:52:54.515+03:00  INFO 47387 --- [payment-system] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-26T21:52:54.925+03:00  INFO 47387 --- [payment-system] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-26T21:52:56.315+03:00  WARN 47387 --- [payment-system] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-26T21:52:56.416+03:00  WARN 47387 --- [payment-system] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 1a5ae070-70a2-4e3a-9e82-7211a51e5d6c
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-04-26T21:52:56.456+03:00  INFO 47387 --- [payment-system] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-04-26T21:52:58.500+03:00  INFO 47387 --- [payment-system] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-04-26T21:52:58.541+03:00  INFO 47387 --- [payment-system] [           main] com.mpesa.PaymentSystemApplication       : Started PaymentSystemApplication in 16.889 seconds (process running for 18.658)
+2026-04-26T21:53:04.401+03:00  INFO 47387 --- [payment-system] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:40 min
+[INFO] Finished at: 2026-04-26T21:54:03+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.13:run (default-cli) on project payment-system: Process terminated with exit code: 137 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
