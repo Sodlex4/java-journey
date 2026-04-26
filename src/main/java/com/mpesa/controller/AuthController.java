@@ -2,11 +2,13 @@ package com.mpesa.controller;
 
 import com.mpesa.service.UserService;
 import com.mpesa.model.User;
+import com.mpesa.model.Transaction;
 import com.mpesa.security.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -84,5 +86,22 @@ public class AuthController {
                 return ResponseEntity.ok(response);
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+    
+    @GetMapping("/balance/{userId}")
+    public ResponseEntity<?> getBalance(@PathVariable Integer userId) {
+        Double balance = userService.getBalance(userId);
+        if (balance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("balance", balance);
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/transactions/{userId}")
+    public ResponseEntity<?> getTransactions(@PathVariable Integer userId) {
+        List<Transaction> transactions = userService.getTransactionHistory(userId);
+        return ResponseEntity.ok(transactions);
     }
 }

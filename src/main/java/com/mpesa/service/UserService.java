@@ -1,23 +1,28 @@
 package com.mpesa.service;
 
 import com.mpesa.model.User;
+import com.mpesa.model.Transaction;
 import com.mpesa.repository.UserRepository;
+import com.mpesa.repository.TransactionRepository;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
     
     private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
     private static final double MAX_AMOUNT = 500000;
     private static final int MAX_ATTEMPTS = 3;
     private static final int LOCK_DURATION = 300;
     
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, TransactionRepository transactionRepository) {
         this.userRepository = userRepository;
+        this.transactionRepository = transactionRepository;
     }
     
     public Optional<User> findById(Integer id) {
@@ -208,5 +213,13 @@ public class UserService {
         if (amount <= 500) return 13;
         if (amount <= 1000) return 25;
         return 30;
+    }
+    
+    public Double getBalance(Integer userId) {
+        return userRepository.findById(userId).map(User::getBalance).orElse(null);
+    }
+    
+    public List<Transaction> getTransactionHistory(Integer userId) {
+        return transactionRepository.findByUserIdOrderByTimestampDesc(userId);
     }
 }
