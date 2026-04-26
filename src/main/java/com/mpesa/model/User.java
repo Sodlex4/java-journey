@@ -14,7 +14,7 @@ public class User {
     @Column(unique = true, nullable = false, length = 50)
     private String username;
     
-    @Column(nullable = false, precision = 15, scale = 2)
+    @Column(nullable = false)
     private Double balance = 0.0;
     
     @Column(length = 60)

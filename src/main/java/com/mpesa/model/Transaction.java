@@ -17,7 +17,6 @@ public class Transaction {
     @Column(length = 20)
     private String type;
     
-    @Column(nullable = false, precision = 15, scale = 2)
     private Double amount;
     
     @Column(length = 20)

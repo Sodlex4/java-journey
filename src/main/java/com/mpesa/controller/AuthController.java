@@ -2,6 +2,7 @@ package com.mpesa.controller;
 
 import com.mpesa.service.UserService;
 import com.mpesa.model.User;
+import com.mpesa.security.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -12,9 +13,11 @@ import java.util.HashMap;
 public class AuthController {
     
     private final UserService userService;
+    private final JwtService jwtService;
     
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, JwtService jwtService) {
         this.userService = userService;
+        this.jwtService = jwtService;
     }
     
     @PostMapping("/register")
@@ -55,9 +58,12 @@ public class AuthController {
         }
         
         if (userService.verifyPin(userId, pin)) {
+            String token = jwtService.generateToken(userId);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Login successful");
+            response.put("token", token);
+            response.put("userId", userId);
             return ResponseEntity.ok(response);
         }
         
