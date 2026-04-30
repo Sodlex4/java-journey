@@ -17,7 +17,9 @@ public class JwtService {
     public JwtService() {
         String secret = System.getenv("JWT_SECRET");
         if (secret == null || secret.isBlank()) {
-            secret = "defaultSecretKeyForDevelopmentPurposesOnly123456";
+            throw new IllegalStateException(
+                "JWT_SECRET environment variable must be set. Generate one with: openssl rand -base64 32"
+            );
         }
         byte[] keyBytes = Base64.getEncoder().encode(secret.getBytes());
         this.key = Keys.hmacShaKeyFor(keyBytes);

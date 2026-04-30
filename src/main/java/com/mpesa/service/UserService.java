@@ -4,7 +4,7 @@ import com.mpesa.model.User;
 import com.mpesa.model.Transaction;
 import com.mpesa.repository.UserRepository;
 import com.mpesa.repository.TransactionRepository;
-import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +16,16 @@ public class UserService {
     
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
     private static final double MAX_AMOUNT = 500000;
     private static final int MAX_ATTEMPTS = 3;
     private static final int LOCK_DURATION = 300;
     
-    public UserService(UserRepository userRepository, TransactionRepository transactionRepository) {
+    public UserService(UserRepository userRepository, TransactionRepository transactionRepository, 
+                       BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
+        this.passwordEncoder = passwordEncoder;
     }
     
     public Optional<User> findById(Integer id) {
@@ -50,7 +53,7 @@ public class UserService {
         }
         
         User user = new User(username, initialBalance != null ? initialBalance : 0.0);
-        user.setPin(BCrypt.hashpw("1234", BCrypt.gensalt()));
+        user.setPin(passwordEncoder.encode("1234"));
         return userRepository.save(user);
     }
     
@@ -70,7 +73,7 @@ public class UserService {
             }
         }
         
-        if (BCrypt.checkpw(pin, user.getPin())) {
+        if (passwordEncoder.matches(pin, user.getPin())) {
             user.setFailedAttempts(0);
             userRepository.save(user);
             return true;
@@ -93,7 +96,7 @@ public class UserService {
         if (!verifyPin(userId, currentPin)) return false;
         
         User user = optUser.get();
-        user.setPin(BCrypt.hashpw(newPin, BCrypt.gensalt()));
+        user.setPin(passwordEncoder.encode(newPin));
         userRepository.save(user);
         return true;
     }
