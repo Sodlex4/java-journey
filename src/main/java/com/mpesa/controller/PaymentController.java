@@ -1,92 +1,62 @@
 package com.mpesa.controller;
 
+import com.mpesa.dto.ApiResponse;
+import com.mpesa.dto.DepositRequest;
+import com.mpesa.dto.WithdrawRequest;
+import com.mpesa.dto.TransferRequest;
 import com.mpesa.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/payment")
 public class PaymentController {
-    
+
     private final UserService userService;
-    
+
     public PaymentController(UserService userService) {
         this.userService = userService;
     }
-    
+
     @PostMapping("/deposit")
-    public ResponseEntity<?> deposit(@RequestBody Map<String, Object> request) {
-        Integer userId = Integer.parseInt(request.get("userId").toString());
-        Double amount = Double.parseDouble(request.get("amount").toString());
-        
-        String result = userService.deposit(userId, amount);
-        
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<?> deposit(@Valid @RequestBody DepositRequest request) {
+        String result = userService.deposit(request.getUserId(), request.getAmount());
+
         if (result.contains("successful")) {
-            response.put("success", true);
-            response.put("message", result);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(null, result));
         } else {
-            response.put("success", false);
-            response.put("error", result);
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(ApiResponse.error(result));
         }
     }
-    
+
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@RequestBody Map<String, Object> request) {
-        Integer userId = Integer.parseInt(request.get("userId").toString());
-        Double amount = Double.parseDouble(request.get("amount").toString());
-        String pin = (String) request.get("pin");
-        
-        if (!userService.verifyPin(userId, pin)) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("error", "Invalid PIN");
-            return ResponseEntity.status(401).body(response);
+    public ResponseEntity<?> withdraw(@Valid @RequestBody WithdrawRequest request) {
+        if (!userService.verifyPin(request.getUserId(), request.getPin())) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Invalid PIN"));
         }
-        
-        String result = userService.withdraw(userId, amount);
-        
-        Map<String, Object> response = new HashMap<>();
+
+        String result = userService.withdraw(request.getUserId(), request.getAmount());
+
         if (result.contains("successful")) {
-            response.put("success", true);
-            response.put("message", result);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(null, result));
         } else {
-            response.put("success", false);
-            response.put("error", result);
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(ApiResponse.error(result));
         }
     }
-    
+
     @PostMapping("/transfer")
-    public ResponseEntity<?> transfer(@RequestBody Map<String, Object> request) {
-        Integer fromUserId = Integer.parseInt(request.get("fromUserId").toString());
-        Integer toUserId = Integer.parseInt(request.get("toUserId").toString());
-        Double amount = Double.parseDouble(request.get("amount").toString());
-        String pin = (String) request.get("pin");
-        
-        if (!userService.verifyPin(fromUserId, pin)) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("error", "Invalid PIN");
-            return ResponseEntity.status(401).body(response);
+    public ResponseEntity<?> transfer(@Valid @RequestBody TransferRequest request) {
+        if (!userService.verifyPin(request.getFromUserId(), request.getPin())) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Invalid PIN"));
         }
-        
-        String result = userService.transfer(fromUserId, toUserId, amount);
-        
-        Map<String, Object> response = new HashMap<>();
+
+        String result = userService.transfer(request.getFromUserId(), request.getToUserId(), request.getAmount());
+
         if (result.contains("successful")) {
-            response.put("success", true);
-            response.put("message", result);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(null, result));
         } else {
-            response.put("success", false);
-            response.put("error", result);
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.badRequest().body(ApiResponse.error(result));
         }
     }
 }
