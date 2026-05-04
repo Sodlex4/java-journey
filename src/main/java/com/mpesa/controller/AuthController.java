@@ -71,7 +71,7 @@ public class AuthController {
 
     @GetMapping("/balance/{userId}")
     public ResponseEntity<?> getBalance(@PathVariable Integer userId) {
-        Double balance = userService.getBalance(userId);
+        java.math.BigDecimal balance = userService.getBalance(userId);
         if (balance == null) {
             return ResponseEntity.notFound().build();
         }

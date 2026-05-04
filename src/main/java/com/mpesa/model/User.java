@@ -1,6 +1,7 @@
 package com.mpesa.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,8 +15,8 @@ public class User {
     @Column(unique = true, nullable = false, length = 50)
     private String username;
     
-    @Column(nullable = false)
-    private Double balance = 0.0;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
     
     @Column(length = 60)
     private String pin;
@@ -36,17 +37,17 @@ public class User {
     
     public User() {}
     
-    public User(String username, Double balance) {
+    public User(String username, BigDecimal balance) {
         this.username = username;
-        this.balance = balance;
+        this.balance = balance != null ? balance : BigDecimal.ZERO;
     }
     
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
-    public Double getBalance() { return balance; }
-    public void setBalance(Double balance) { this.balance = balance; }
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
     public String getPin() { return pin; }
     public void setPin(String pin) { this.pin = pin; }
     public Integer getFailedAttempts() { return failedAttempts; }
@@ -60,13 +61,13 @@ public class User {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     
-    public void deposit(Double amount) {
-        this.balance += amount;
+    public void deposit(BigDecimal amount) {
+        this.balance = this.balance.add(amount);
     }
     
-    public boolean withdraw(Double amount) {
-        if (this.balance >= amount) {
-            this.balance -= amount;
+    public boolean withdraw(BigDecimal amount) {
+        if (this.balance.compareTo(amount) >= 0) {
+            this.balance = this.balance.subtract(amount);
             return true;
         }
         return false;

@@ -1,6 +1,7 @@
 package com.mpesa.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,7 +18,7 @@ public class Transaction {
     @Column(length = 20)
     private String type;
     
-    private Double amount;
+    private BigDecimal amount;
     
     @Column(length = 20)
     private String status;
@@ -36,7 +37,7 @@ public class Transaction {
     
     public Transaction() {}
     
-    public Transaction(String txId, String type, Double amount, String status, String fromUser, String toUser) {
+    public Transaction(String txId, String type, BigDecimal amount, String status, String fromUser, String toUser) {
         this.txId = txId;
         this.type = type;
         this.amount = amount;
@@ -51,8 +52,8 @@ public class Transaction {
     public void setTxId(String txId) { this.txId = txId; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
-    public Double getAmount() { return amount; }
-    public void setAmount(Double amount) { this.amount = amount; }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getFromUser() { return fromUser; }

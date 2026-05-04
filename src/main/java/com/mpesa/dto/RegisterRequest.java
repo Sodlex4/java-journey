@@ -1,6 +1,7 @@
 package com.mpesa.dto;
 
 import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
 
 public class RegisterRequest {
     @NotBlank(message = "Username is required")
@@ -13,13 +14,14 @@ public class RegisterRequest {
     @Pattern(regexp = "^\\d{4}$", message = "PIN must be numeric")
     private String pin;
 
+    @NotNull(message = "Initial balance cannot be negative")
     @DecimalMin(value = "0.0", message = "Initial balance cannot be negative")
-    private Double balance;
+    private BigDecimal balance;
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
     public String getPin() { return pin; }
     public void setPin(String pin) { this.pin = pin; }
-    public Double getBalance() { return balance; }
-    public void setBalance(Double balance) { this.balance = balance; }
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
 }

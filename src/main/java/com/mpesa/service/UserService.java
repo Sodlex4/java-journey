@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,7 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
     private final PasswordEncoder passwordEncoder;
-    private static final double MAX_AMOUNT = 500000;
+    private static final BigDecimal MAX_AMOUNT = new BigDecimal("500000");
     private static final int MAX_ATTEMPTS = 3;
     private static final int LOCK_DURATION = 300;
     
@@ -42,12 +43,12 @@ public class UserService {
     }
     
     @Transactional
-    public User createUser(String username, String pin, Double initialBalance) {
+    public User createUser(String username, String pin, BigDecimal initialBalance) {
         if (existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
         
-        User user = new User(username, initialBalance != null ? initialBalance : 0.0);
+        User user = new User(username, initialBalance != null ? initialBalance : BigDecimal.ZERO);
         user.setPin(passwordEncoder.encode(pin));
         return userRepository.save(user);
     }
@@ -125,7 +126,7 @@ public class UserService {
     }
     
     @Transactional
-    public String deposit(Integer userId, Double amount) {
+    public String deposit(Integer userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new PaymentException("User not found."));
         
@@ -136,12 +137,12 @@ public class UserService {
     }
     
     @Transactional
-    public String withdraw(Integer userId, Double amount) {
+    public String withdraw(Integer userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new PaymentException("User not found."));
         
-        double fee = calculateFee(amount);
-        double total = amount + fee;
+        BigDecimal fee = calculateFee(amount);
+        BigDecimal total = amount.add(fee);
         
         if (!user.withdraw(total)) {
             throw new PaymentException("Insufficient funds.");
@@ -149,7 +150,7 @@ public class UserService {
         
         userRepository.save(user);
         String result = "Withdrawal successful. Amount: KES " + amount;
-        if (fee > 0) {
+        if (fee.compareTo(BigDecimal.ZERO) > 0) {
             result += ", Fee: KES " + fee;
         }
         result += ". New balance: KES " + user.getBalance();
@@ -157,7 +158,7 @@ public class UserService {
     }
     
     @Transactional
-    public String transfer(Integer fromUserId, Integer toUserId, Double amount) {
+    public String transfer(Integer fromUserId, Integer toUserId, BigDecimal amount) {
         User from = userRepository.findById(fromUserId)
             .orElseThrow(() -> new PaymentException("Sender not found."));
         User to = userRepository.findById(toUserId)
@@ -167,8 +168,8 @@ public class UserService {
             throw new PaymentException("Cannot transfer to yourself.");
         }
         
-        double fee = calculateFee(amount);
-        double total = amount + fee;
+        BigDecimal fee = calculateFee(amount);
+        BigDecimal total = amount.add(fee);
         
         if (!from.withdraw(total)) {
             throw new PaymentException("Insufficient funds.");
@@ -183,14 +184,14 @@ public class UserService {
                ". New balance: KES " + from.getBalance();
     }
     
-    private double calculateFee(double amount) {
-        if (amount <= 100) return 0;
-        if (amount <= 500) return 13;
-        if (amount <= 1000) return 25;
-        return 30;
+    private BigDecimal calculateFee(BigDecimal amount) {
+        if (amount.compareTo(new BigDecimal("100")) <= 0) return BigDecimal.ZERO;
+        if (amount.compareTo(new BigDecimal("500")) <= 0) return new BigDecimal("13");
+        if (amount.compareTo(new BigDecimal("1000")) <= 0) return new BigDecimal("25");
+        return new BigDecimal("30");
     }
     
-    public Double getBalance(Integer userId) {
+    public BigDecimal getBalance(Integer userId) {
         return userRepository.findById(userId).map(User::getBalance).orElse(null);
     }
     
