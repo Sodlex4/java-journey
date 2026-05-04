@@ -1,10 +1,11 @@
 package com.mpesa.service;
 
+import com.mpesa.exception.PaymentException;
 import com.mpesa.model.User;
 import com.mpesa.model.Transaction;
 import com.mpesa.repository.UserRepository;
 import com.mpesa.repository.TransactionRepository;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +17,13 @@ public class UserService {
     
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private static final double MAX_AMOUNT = 500000;
     private static final int MAX_ATTEMPTS = 3;
     private static final int LOCK_DURATION = 300;
     
     public UserService(UserRepository userRepository, TransactionRepository transactionRepository, 
-                       BCryptPasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
         this.passwordEncoder = passwordEncoder;
@@ -41,19 +42,13 @@ public class UserService {
     }
     
     @Transactional
-    public User createUser(String username, Double initialBalance) {
-        if (username == null || username.length() < 3 || username.length() > 50) {
-            throw new IllegalArgumentException("Username must be 3-50 characters");
-        }
-        if (!username.matches("^[a-zA-Z0-9_]+$")) {
-            throw new IllegalArgumentException("Username must be alphanumeric");
-        }
+    public User createUser(String username, String pin, Double initialBalance) {
         if (existsByUsername(username)) {
             throw new IllegalArgumentException("Username already exists");
         }
         
         User user = new User(username, initialBalance != null ? initialBalance : 0.0);
-        user.setPin(passwordEncoder.encode("1234"));
+        user.setPin(passwordEncoder.encode(pin));
         return userRepository.save(user);
     }
     
@@ -131,17 +126,9 @@ public class UserService {
     
     @Transactional
     public String deposit(Integer userId, Double amount) {
-        if (amount == null || amount <= 0) {
-            return "Invalid amount.";
-        }
-        if (amount > MAX_AMOUNT) {
-            return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
-        }
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new PaymentException("User not found."));
         
-        Optional<User> optUser = userRepository.findById(userId);
-        if (optUser.isEmpty()) return "User not found.";
-        
-        User user = optUser.get();
         user.deposit(amount);
         userRepository.save(user);
         
@@ -150,22 +137,14 @@ public class UserService {
     
     @Transactional
     public String withdraw(Integer userId, Double amount) {
-        if (amount == null || amount <= 0) {
-            return "Invalid amount.";
-        }
-        if (amount > MAX_AMOUNT) {
-            return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
-        }
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new PaymentException("User not found."));
         
-        Optional<User> optUser = userRepository.findById(userId);
-        if (optUser.isEmpty()) return "User not found.";
-        
-        User user = optUser.get();
         double fee = calculateFee(amount);
         double total = amount + fee;
         
         if (!user.withdraw(total)) {
-            return "Insufficient funds.";
+            throw new PaymentException("Insufficient funds.");
         }
         
         userRepository.save(user);
@@ -179,27 +158,20 @@ public class UserService {
     
     @Transactional
     public String transfer(Integer fromUserId, Integer toUserId, Double amount) {
-        if (amount == null || amount <= 0) {
-            return "Invalid amount.";
+        User from = userRepository.findById(fromUserId)
+            .orElseThrow(() -> new PaymentException("Sender not found."));
+        User to = userRepository.findById(toUserId)
+            .orElseThrow(() -> new PaymentException("Recipient not found."));
+        
+        if (fromUserId.equals(toUserId)) {
+            throw new PaymentException("Cannot transfer to yourself.");
         }
-        if (amount > MAX_AMOUNT) {
-            return "Amount exceeds maximum limit of KES " + MAX_AMOUNT;
-        }
         
-        Optional<User> optFrom = userRepository.findById(fromUserId);
-        Optional<User> optTo = userRepository.findById(toUserId);
-        
-        if (optFrom.isEmpty()) return "Sender not found.";
-        if (optTo.isEmpty()) return "Recipient not found.";
-        if (fromUserId.equals(toUserId)) return "Cannot transfer to yourself.";
-        
-        User from = optFrom.get();
-        User to = optTo.get();
         double fee = calculateFee(amount);
         double total = amount + fee;
         
         if (!from.withdraw(total)) {
-            return "Insufficient funds.";
+            throw new PaymentException("Insufficient funds.");
         }
         
         to.deposit(amount);

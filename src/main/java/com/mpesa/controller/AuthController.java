@@ -1,6 +1,7 @@
 package com.mpesa.controller;
 
 import com.mpesa.dto.ApiResponse;
+import com.mpesa.dto.ChangePinRequest;
 import com.mpesa.dto.LoginRequest;
 import com.mpesa.dto.RegisterRequest;
 import com.mpesa.service.UserService;
@@ -27,7 +28,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
-            User user = userService.createUser(request.getUsername(), request.getBalance());
+            User user = userService.createUser(request.getUsername(), request.getPin(), request.getBalance());
 
             return ResponseEntity.ok(ApiResponse.success(
                 java.util.Map.of("userId", user.getId(), "username", user.getUsername()),
@@ -84,5 +85,13 @@ public class AuthController {
     public ResponseEntity<?> getTransactions(@PathVariable Integer userId) {
         List<Transaction> transactions = userService.getTransactionHistory(userId);
         return ResponseEntity.ok(transactions);
+    }
+
+    @PostMapping("/change-pin")
+    public ResponseEntity<?> changePin(@Valid @RequestBody ChangePinRequest request) {
+        if (userService.changePin(request.getUserId(), request.getCurrentPin(), request.getNewPin())) {
+            return ResponseEntity.ok(ApiResponse.success("PIN changed successfully"));
+        }
+        return ResponseEntity.status(401).body(ApiResponse.error("Current PIN is incorrect"));
     }
 }

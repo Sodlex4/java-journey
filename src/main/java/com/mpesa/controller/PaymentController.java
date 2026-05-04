@@ -22,12 +22,7 @@ public class PaymentController {
     @PostMapping("/deposit")
     public ResponseEntity<?> deposit(@Valid @RequestBody DepositRequest request) {
         String result = userService.deposit(request.getUserId(), request.getAmount());
-
-        if (result.contains("successful")) {
-            return ResponseEntity.ok(ApiResponse.success(null, result));
-        } else {
-            return ResponseEntity.badRequest().body(ApiResponse.error(result));
-        }
+        return ResponseEntity.ok(ApiResponse.success(null, result));
     }
 
     @PostMapping("/withdraw")
@@ -37,12 +32,7 @@ public class PaymentController {
         }
 
         String result = userService.withdraw(request.getUserId(), request.getAmount());
-
-        if (result.contains("successful")) {
-            return ResponseEntity.ok(ApiResponse.success(null, result));
-        } else {
-            return ResponseEntity.badRequest().body(ApiResponse.error(result));
-        }
+        return ResponseEntity.ok(ApiResponse.success(null, result));
     }
 
     @PostMapping("/transfer")
@@ -52,11 +42,6 @@ public class PaymentController {
         }
 
         String result = userService.transfer(request.getFromUserId(), request.getToUserId(), request.getAmount());
-
-        if (result.contains("successful")) {
-            return ResponseEntity.ok(ApiResponse.success(null, result));
-        } else {
-            return ResponseEntity.badRequest().body(ApiResponse.error(result));
-        }
+        return ResponseEntity.ok(ApiResponse.success(null, result));
     }
 }

@@ -2,6 +2,7 @@ package com.mpesa.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -14,11 +15,10 @@ public class JwtService {
     private final SecretKey key;
     private final long expirationMs = 86400000;
     
-    public JwtService() {
-        String secret = System.getenv("JWT_SECRET");
+    public JwtService(@Value("${app.jwt.secret}") String secret) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException(
-                "JWT_SECRET environment variable must be set. Generate one with: openssl rand -base64 32"
+                "app.jwt.secret must be set. Generate one with: openssl rand -base64 32"
             );
         }
         byte[] keyBytes = Base64.getEncoder().encode(secret.getBytes());

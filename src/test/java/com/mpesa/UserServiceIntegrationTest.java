@@ -1,5 +1,6 @@
 package com.mpesa;
 
+import com.mpesa.exception.PaymentException;
 import com.mpesa.model.User;
 import com.mpesa.repository.UserRepository;
 import com.mpesa.service.UserService;
@@ -14,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class UserServiceIntegrationTest {
 
+    private static final String TEST_PIN = "1234";
+
     @Autowired
     private UserService userService;
 
@@ -23,7 +26,7 @@ public class UserServiceIntegrationTest {
     @Test
     public void testCreateUser() {
         String username = "testuser_" + System.currentTimeMillis();
-        User user = userService.createUser(username, 1000.0);
+        User user = userService.createUser(username, TEST_PIN, 1000.0);
         
         assertNotNull(user.getId());
         assertEquals(username, user.getUsername());
@@ -35,9 +38,9 @@ public class UserServiceIntegrationTest {
     @Test
     public void testVerifyPin() {
         String username = "pinuser_" + System.currentTimeMillis();
-        User user = userService.createUser(username, 500.0);
+        User user = userService.createUser(username, TEST_PIN, 500.0);
         
-        assertTrue(userService.verifyPin(user.getId(), "1234"));
+        assertTrue(userService.verifyPin(user.getId(), TEST_PIN));
         assertFalse(userService.verifyPin(user.getId(), "wrong"));
         
         userRepository.delete(user);
@@ -46,7 +49,7 @@ public class UserServiceIntegrationTest {
     @Test
     public void testDeposit() {
         String username = "deposituser_" + System.currentTimeMillis();
-        User user = userService.createUser(username, 100.0);
+        User user = userService.createUser(username, TEST_PIN, 100.0);
         
         String result = userService.deposit(user.getId(), 200.0);
         assertTrue(result.contains("successful"));
@@ -60,7 +63,7 @@ public class UserServiceIntegrationTest {
     @Test
     public void testWithdraw() {
         String username = "withdrawuser_" + System.currentTimeMillis();
-        User user = userService.createUser(username, 500.0);
+        User user = userService.createUser(username, TEST_PIN, 500.0);
         
         String result = userService.withdraw(user.getId(), 100.0);
         assertTrue(result.contains("successful"));
@@ -76,8 +79,8 @@ public class UserServiceIntegrationTest {
         String senderName = "sender_" + System.currentTimeMillis();
         String receiverName = "receiver_" + System.currentTimeMillis();
         
-        User sender = userService.createUser(senderName, 1000.0);
-        User receiver = userService.createUser(receiverName, 100.0);
+        User sender = userService.createUser(senderName, TEST_PIN, 1000.0);
+        User receiver = userService.createUser(receiverName, TEST_PIN, 100.0);
         
         String result = userService.transfer(sender.getId(), receiver.getId(), 200.0);
         assertTrue(result.contains("successful"));
@@ -95,10 +98,9 @@ public class UserServiceIntegrationTest {
     @Test
     public void testInsufficientFunds() {
         String username = "fundsuser_" + System.currentTimeMillis();
-        User user = userService.createUser(username, 50.0);
+        User user = userService.createUser(username, TEST_PIN, 50.0);
         
-        String result = userService.withdraw(user.getId(), 100.0);
-        assertTrue(result.contains("Insufficient"));
+        assertThrows(PaymentException.class, () -> userService.withdraw(user.getId(), 100.0));
         
         userRepository.delete(user);
     }

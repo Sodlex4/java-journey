@@ -7,6 +7,7 @@ public class TransferRequest {
     private Integer fromUserId;
 
     @NotNull(message = "Recipient ID is required")
+    @Min(value = 1, message = "Recipient ID must be positive")
     private Integer toUserId;
 
     @NotNull(message = "Amount is required")
