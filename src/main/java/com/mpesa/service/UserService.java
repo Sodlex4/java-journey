@@ -133,9 +133,8 @@ public class UserService {
             .orElseThrow(() -> new PaymentException("User not found"));
         
         user.deposit(amount);
-        // Managed entity auto-persisted at transaction end - no save() needed
         
-        String txId = logTransaction("DEPOSIT", amount, "SUCCESS", null, user.getUsername());
+        logTransaction("DEPOSIT", amount, BigDecimal.ZERO, "SUCCESS", null, user.getUsername(), user);
         
         return "Deposit successful. New balance: KES " + user.getBalance();
     }
@@ -152,9 +151,11 @@ public class UserService {
             throw new PaymentException("Insufficient funds");
         }
         
-        String txId = logTransaction("WITHDRAW", amount, "SUCCESS", user.getUsername(), null);
+        logTransaction("WITHDRAW", amount, fee, "SUCCESS", user.getUsername(), null, user);
         
-        return "Withdrawal successful. Amount: KES " + amount;
+        return "Withdrawal successful. Amount: KES " + amount +
+               (fee.compareTo(BigDecimal.ZERO) > 0 ? ", Fee: KES " + fee : "") +
+               ". New balance: KES " + user.getBalance();
     }
     
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -177,7 +178,8 @@ public class UserService {
         
         to.deposit(amount);
         
-        String txId = logTransaction("TRANSFER", amount, "SUCCESS", from.getUsername(), to.getUsername());
+        logTransaction("TRANSFER", amount, fee, "SUCCESS", from.getUsername(), to.getUsername(), from);
+        logTransaction("TRANSFER", amount, BigDecimal.ZERO, "SUCCESS", from.getUsername(), to.getUsername(), to);
         
         return "Transfer successful. Sent KES " + amount + " to " + to.getUsername() + 
                ". New balance: KES " + from.getBalance();
@@ -200,10 +202,13 @@ public class UserService {
         return new BigDecimal("30");
     }
     
-    private String logTransaction(String type, BigDecimal amount, String status, String fromUser, String toUser) {
+    private String logTransaction(String type, BigDecimal amount, BigDecimal fee,
+            String status, String fromUser, String toUser, User owner) {
         String txId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         
         Transaction tx = new Transaction(txId, type, amount, status, fromUser, toUser);
+        tx.setFee(fee);
+        tx.setUser(owner);
         transactionRepository.save(tx);
         
         return txId;

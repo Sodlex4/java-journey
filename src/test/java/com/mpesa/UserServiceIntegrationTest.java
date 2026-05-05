@@ -2,6 +2,7 @@ package com.mpesa;
 
 import com.mpesa.exception.PaymentException;
 import com.mpesa.model.User;
+import com.mpesa.repository.TransactionRepository;
 import com.mpesa.repository.UserRepository;
 import com.mpesa.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,16 @@ public class UserServiceIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private TransactionRepository transactionRepository;
+
+    private void cleanup(User... users) {
+        transactionRepository.deleteAll();
+        for (User user : users) {
+            userRepository.delete(user);
+        }
+    }
+
     @Test
     public void testCreateUser() {
         String username = "testuser_" + System.currentTimeMillis();
@@ -34,7 +45,7 @@ public class UserServiceIntegrationTest {
         assertEquals(username, user.getUsername());
         assertEquals(0, new BigDecimal("1000.0").compareTo(user.getBalance()));
         
-        userRepository.delete(user);
+        cleanup(user);
     }
 
     @Test
@@ -45,7 +56,7 @@ public class UserServiceIntegrationTest {
         assertTrue(userService.verifyPin(user.getId(), TEST_PIN));
         assertFalse(userService.verifyPin(user.getId(), "wrong"));
         
-        userRepository.delete(user);
+        cleanup(user);
     }
 
     @Test
@@ -59,7 +70,7 @@ public class UserServiceIntegrationTest {
         User updated = userService.findById(user.getId()).orElseThrow();
         assertEquals(0, new BigDecimal("300.0").compareTo(updated.getBalance()));
         
-        userRepository.delete(user);
+        cleanup(user);
     }
 
     @Test
@@ -73,7 +84,7 @@ public class UserServiceIntegrationTest {
         User updated = userService.findById(user.getId()).orElseThrow();
         assertTrue(updated.getBalance().compareTo(new BigDecimal("500.0")) < 0);
         
-        userRepository.delete(user);
+        cleanup(user);
     }
 
     @Test
@@ -93,8 +104,7 @@ public class UserServiceIntegrationTest {
         assertEquals(0, new BigDecimal("800.0").compareTo(updatedSender.getBalance().add(new BigDecimal("13"))));
         assertEquals(0, new BigDecimal("300.0").compareTo(updatedReceiver.getBalance()));
         
-        userRepository.delete(sender);
-        userRepository.delete(receiver);
+        cleanup(sender, receiver);
     }
 
     @Test
@@ -104,6 +114,6 @@ public class UserServiceIntegrationTest {
         
         assertThrows(PaymentException.class, () -> userService.withdraw(user.getId(), new BigDecimal("100.0")));
         
-        userRepository.delete(user);
+        cleanup(user);
     }
 }

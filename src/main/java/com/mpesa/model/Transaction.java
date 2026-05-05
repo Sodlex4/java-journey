@@ -23,6 +23,8 @@ public class Transaction {
     @Column(length = 20)
     private String status;
     
+    private BigDecimal fee = BigDecimal.ZERO;
+    
     @Column(name = "from_user")
     private String fromUser;
     
@@ -56,6 +58,8 @@ public class Transaction {
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+    public BigDecimal getFee() { return fee; }
+    public void setFee(BigDecimal fee) { this.fee = fee; }
     public String getFromUser() { return fromUser; }
     public void setFromUser(String fromUser) { this.fromUser = fromUser; }
     public String getToUser() { return toUser; }
