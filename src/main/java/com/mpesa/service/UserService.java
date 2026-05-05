@@ -7,11 +7,13 @@ import com.mpesa.repository.UserRepository;
 import com.mpesa.repository.TransactionRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -128,10 +130,12 @@ public class UserService {
     @Transactional
     public String deposit(Integer userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new PaymentException("User not found."));
+            .orElseThrow(() -> new PaymentException("User not found"));
         
         user.deposit(amount);
-        userRepository.save(user);
+        // Managed entity auto-persisted at transaction end - no save() needed
+        
+        String txId = logTransaction("DEPOSIT", amount, "SUCCESS", null, user.getUsername());
         
         return "Deposit successful. New balance: KES " + user.getBalance();
     }
@@ -139,49 +143,54 @@ public class UserService {
     @Transactional
     public String withdraw(Integer userId, BigDecimal amount) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new PaymentException("User not found."));
+            .orElseThrow(() -> new PaymentException("User not found"));
         
         BigDecimal fee = calculateFee(amount);
         BigDecimal total = amount.add(fee);
         
         if (!user.withdraw(total)) {
-            throw new PaymentException("Insufficient funds.");
+            throw new PaymentException("Insufficient funds");
         }
         
-        userRepository.save(user);
-        String result = "Withdrawal successful. Amount: KES " + amount;
-        if (fee.compareTo(BigDecimal.ZERO) > 0) {
-            result += ", Fee: KES " + fee;
-        }
-        result += ". New balance: KES " + user.getBalance();
-        return result;
+        String txId = logTransaction("WITHDRAW", amount, "SUCCESS", user.getUsername(), null);
+        
+        return "Withdrawal successful. Amount: KES " + amount;
     }
     
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public String transfer(Integer fromUserId, Integer toUserId, BigDecimal amount) {
         User from = userRepository.findById(fromUserId)
-            .orElseThrow(() -> new PaymentException("Sender not found."));
+            .orElseThrow(() -> new PaymentException("Sender not found"));
         User to = userRepository.findById(toUserId)
-            .orElseThrow(() -> new PaymentException("Recipient not found."));
+            .orElseThrow(() -> new PaymentException("Recipient not found"));
         
         if (fromUserId.equals(toUserId)) {
-            throw new PaymentException("Cannot transfer to yourself.");
+            throw new PaymentException("Cannot transfer to yourself");
         }
         
         BigDecimal fee = calculateFee(amount);
         BigDecimal total = amount.add(fee);
         
         if (!from.withdraw(total)) {
-            throw new PaymentException("Insufficient funds.");
+            throw new PaymentException("Insufficient funds");
         }
         
         to.deposit(amount);
         
-        userRepository.save(from);
-        userRepository.save(to);
+        String txId = logTransaction("TRANSFER", amount, "SUCCESS", from.getUsername(), to.getUsername());
         
         return "Transfer successful. Sent KES " + amount + " to " + to.getUsername() + 
                ". New balance: KES " + from.getBalance();
+    }
+    
+    @Transactional(readOnly = true)
+    public BigDecimal getBalance(Integer userId) {
+        return userRepository.findById(userId).map(User::getBalance).orElse(null);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<Transaction> getTransactionHistory(Integer userId) {
+        return transactionRepository.findByUserIdOrderByTimestampDesc(userId);
     }
     
     private BigDecimal calculateFee(BigDecimal amount) {
@@ -191,11 +200,12 @@ public class UserService {
         return new BigDecimal("30");
     }
     
-    public BigDecimal getBalance(Integer userId) {
-        return userRepository.findById(userId).map(User::getBalance).orElse(null);
-    }
-    
-    public List<Transaction> getTransactionHistory(Integer userId) {
-        return transactionRepository.findByUserIdOrderByTimestampDesc(userId);
+    private String logTransaction(String type, BigDecimal amount, String status, String fromUser, String toUser) {
+        String txId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        Transaction tx = new Transaction(txId, type, amount, status, fromUser, toUser);
+        transactionRepository.save(tx);
+        
+        return txId;
     }
 }
