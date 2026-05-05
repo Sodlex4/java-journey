@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestControllerAdvice
@@ -28,17 +30,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleValidationException(
             MethodArgumentNotValidException ex, WebRequest request) {
         String correlationId = UUID.randomUUID().toString();
-        log.warn("[{}] Validation failed: {}", correlationId,
-                ex.getBindingResult().getFieldErrors().stream()
-                        .map(e -> e.getField() + ": " + e.getDefaultMessage())
-                        .toList());
+        List<Map<String, String>> details = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> Map.of("field", e.getField(), "message", e.getDefaultMessage()))
+                .toList();
 
-        String errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getDefaultMessage())
-                .toList().toString();
+        log.warn("[{}] Validation failed: {}", correlationId, details);
 
         return ResponseEntity.badRequest().body(
-                ApiResponse.error("Validation failed", ErrorCode.VALIDATION_FAILED, correlationId));
+                ApiResponse.error("Validation failed", ErrorCode.VALIDATION_FAILED, details));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -57,9 +56,12 @@ public class GlobalExceptionHandler {
         String correlationId = UUID.randomUUID().toString();
         log.warn("[{}] Payment error: {}", correlationId, ex.getMessage());
 
-        ErrorCode code = mapPaymentError(ex.getMessage());
-        return ResponseEntity.badRequest().body(
-                ApiResponse.error(sanitizePaymentMessage(ex.getMessage()), code, correlationId));
+        String message = ex.getMessage();
+        int status = getPaymentErrorStatus(message);
+        ErrorCode code = mapPaymentError(message);
+
+        return ResponseEntity.status(status).body(
+                ApiResponse.error(sanitizePaymentMessage(message), code, correlationId));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -108,7 +110,7 @@ public class GlobalExceptionHandler {
         String correlationId = UUID.randomUUID().toString();
         log.warn("[{}] Access denied", correlationId);
 
-        return ResponseEntity.status(401).body(
+        return ResponseEntity.status(403).body(
                 ApiResponse.error("Access denied", ErrorCode.ACCESS_DENIED, correlationId));
     }
 
@@ -123,9 +125,17 @@ public class GlobalExceptionHandler {
                         ErrorCode.INTERNAL_ERROR, correlationId));
     }
 
+    private int getPaymentErrorStatus(String message) {
+        if (message.contains("locked")) return 423;
+        if (message.contains("PIN") || message.contains("PIN is incorrect")) return 401;
+        return 400;
+    }
+
     private ErrorCode mapPaymentError(String message) {
         if (message.contains("Insufficient")) return ErrorCode.INSUFFICIENT_FUNDS;
         if (message.contains("not found")) return ErrorCode.USER_NOT_FOUND;
+        if (message.contains("locked")) return ErrorCode.ACCOUNT_LOCKED;
+        if (message.contains("PIN")) return ErrorCode.INVALID_PIN;
         return ErrorCode.INTERNAL_ERROR;
     }
 
@@ -133,6 +143,8 @@ public class GlobalExceptionHandler {
         if (message.contains("Insufficient")) return "Insufficient funds";
         if (message.contains("not found")) return "User not found";
         if (message.contains("Cannot transfer to yourself")) return "Cannot transfer to yourself";
+        if (message.contains("locked")) return message;
+        if (message.contains("PIN")) return "Invalid PIN";
         return "Request failed";
     }
 }

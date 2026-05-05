@@ -4,6 +4,7 @@ import com.mpesa.dto.ApiResponse;
 import com.mpesa.dto.ChangePinRequest;
 import com.mpesa.dto.LoginRequest;
 import com.mpesa.dto.RegisterRequest;
+import com.mpesa.exception.PaymentException;
 import com.mpesa.service.UserService;
 import com.mpesa.model.User;
 import com.mpesa.model.Transaction;
@@ -29,25 +30,19 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        try {
-            User user = userService.createUser(request.getUsername(), request.getPin(), request.getBalance());
+        User user = userService.createUser(request.getUsername(), request.getPin(), request.getBalance());
 
-            return ResponseEntity.ok(ApiResponse.success(
-                java.util.Map.of("userId", user.getId(), "username", user.getUsername()),
-                "User registered successfully"
-            ));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-        }
+        return ResponseEntity.ok(ApiResponse.success(
+            java.util.Map.of("userId", user.getId(), "username", user.getUsername()),
+            "User registered successfully"
+        ));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
         if (userService.isLocked(request.getUserId())) {
             long remaining = userService.getLockRemainingSeconds(request.getUserId());
-            return ResponseEntity.status(423).body(ApiResponse.error(
-                "Account locked. Try again in " + remaining + " seconds."
-            ));
+            throw new PaymentException("Account locked. Try again in " + remaining + " seconds.");
         }
 
         if (userService.verifyPin(request.getUserId(), request.getPin())) {
@@ -58,7 +53,7 @@ public class AuthController {
             ));
         }
 
-        return ResponseEntity.status(401).body(ApiResponse.error("Invalid PIN"));
+        throw new PaymentException("Invalid PIN");
     }
 
     @GetMapping("/user/{id}")
@@ -75,7 +70,10 @@ public class AuthController {
     public ResponseEntity<?> getBalance(@AuthenticationPrincipal Integer userId) {
         BigDecimal balance = userService.getBalance(userId);
         if (balance == null) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(ApiResponse.success(
+                java.util.Map.of("balance", BigDecimal.ZERO),
+                null
+            ));
         }
         return ResponseEntity.ok(ApiResponse.success(
             java.util.Map.of("balance", balance),
@@ -94,11 +92,11 @@ public class AuthController {
             @AuthenticationPrincipal Integer userId,
             @Valid @RequestBody ChangePinRequest request) {
         if (!userId.equals(request.getUserId())) {
-            return ResponseEntity.status(403).body(ApiResponse.error("Cannot change another user's PIN"));
+            throw new PaymentException("Cannot change another user's PIN");
         }
         if (userService.changePin(userId, request.getCurrentPin(), request.getNewPin())) {
             return ResponseEntity.ok(ApiResponse.success("PIN changed successfully"));
         }
-        return ResponseEntity.status(401).body(ApiResponse.error("Current PIN is incorrect"));
+        throw new PaymentException("Current PIN is incorrect");
     }
 }

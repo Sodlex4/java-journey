@@ -4,6 +4,7 @@ import com.mpesa.dto.ApiResponse;
 import com.mpesa.dto.DepositRequest;
 import com.mpesa.dto.WithdrawRequest;
 import com.mpesa.dto.TransferRequest;
+import com.mpesa.exception.PaymentException;
 import com.mpesa.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class PaymentController {
             @AuthenticationPrincipal Integer userId,
             @Valid @RequestBody WithdrawRequest request) {
         if (!userService.verifyPin(userId, request.getPin())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Invalid PIN"));
+            throw new PaymentException("Invalid PIN");
         }
 
         String result = userService.withdraw(userId, request.getAmount());
@@ -45,7 +46,7 @@ public class PaymentController {
             @AuthenticationPrincipal Integer userId,
             @Valid @RequestBody TransferRequest request) {
         if (!userService.verifyPin(userId, request.getPin())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Invalid PIN"));
+            throw new PaymentException("Invalid PIN");
         }
 
         String result = userService.transfer(userId, request.getToUserId(), request.getAmount());

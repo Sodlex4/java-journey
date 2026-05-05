@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -21,6 +23,8 @@ public class ApiResponse<T> {
 
     @JsonProperty("timestamp")
     private Instant timestamp = Instant.now();
+
+    private List<Map<String, String>> details;
 
     public ApiResponse() {}
 
@@ -57,6 +61,12 @@ public class ApiResponse<T> {
         return response;
     }
 
+    public static <T> ApiResponse<T> error(String error, ErrorCode errorCode, List<Map<String, String>> details) {
+        ApiResponse<T> response = error(error, errorCode);
+        response.setDetails(details);
+        return response;
+    }
+
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
     public String getMessage() { return message; }
@@ -71,4 +81,6 @@ public class ApiResponse<T> {
     public void setCorrelationId(String correlationId) { this.correlationId = correlationId; }
     public Instant getTimestamp() { return timestamp; }
     public void setTimestamp(Instant timestamp) { this.timestamp = timestamp; }
+    public List<Map<String, String>> getDetails() { return details; }
+    public void setDetails(List<Map<String, String>> details) { this.details = details; }
 }
