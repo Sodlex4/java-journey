@@ -4,9 +4,6 @@ import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 
 public class TransferRequest {
-    @NotNull(message = "Sender ID is required")
-    private Integer fromUserId;
-
     @NotNull(message = "Recipient ID is required")
     @Min(value = 1, message = "Recipient ID must be positive")
     private Integer toUserId;
@@ -19,8 +16,6 @@ public class TransferRequest {
     @NotBlank(message = "PIN is required")
     private String pin;
 
-    public Integer getFromUserId() { return fromUserId; }
-    public void setFromUserId(Integer fromUserId) { this.fromUserId = fromUserId; }
     public Integer getToUserId() { return toUserId; }
     public void setToUserId(Integer toUserId) { this.toUserId = toUserId; }
     public BigDecimal getAmount() { return amount; }

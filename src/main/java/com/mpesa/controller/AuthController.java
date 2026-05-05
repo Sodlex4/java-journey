@@ -10,7 +10,9 @@ import com.mpesa.model.Transaction;
 import com.mpesa.security.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -69,9 +71,9 @@ public class AuthController {
             .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/balance/{userId}")
-    public ResponseEntity<?> getBalance(@PathVariable Integer userId) {
-        java.math.BigDecimal balance = userService.getBalance(userId);
+    @GetMapping("/balance")
+    public ResponseEntity<?> getBalance(@AuthenticationPrincipal Integer userId) {
+        BigDecimal balance = userService.getBalance(userId);
         if (balance == null) {
             return ResponseEntity.notFound().build();
         }
@@ -81,15 +83,20 @@ public class AuthController {
         ));
     }
 
-    @GetMapping("/transactions/{userId}")
-    public ResponseEntity<?> getTransactions(@PathVariable Integer userId) {
+    @GetMapping("/transactions")
+    public ResponseEntity<?> getTransactions(@AuthenticationPrincipal Integer userId) {
         List<Transaction> transactions = userService.getTransactionHistory(userId);
         return ResponseEntity.ok(transactions);
     }
 
     @PostMapping("/change-pin")
-    public ResponseEntity<?> changePin(@Valid @RequestBody ChangePinRequest request) {
-        if (userService.changePin(request.getUserId(), request.getCurrentPin(), request.getNewPin())) {
+    public ResponseEntity<?> changePin(
+            @AuthenticationPrincipal Integer userId,
+            @Valid @RequestBody ChangePinRequest request) {
+        if (!userId.equals(request.getUserId())) {
+            return ResponseEntity.status(403).body(ApiResponse.error("Cannot change another user's PIN"));
+        }
+        if (userService.changePin(userId, request.getCurrentPin(), request.getNewPin())) {
             return ResponseEntity.ok(ApiResponse.success("PIN changed successfully"));
         }
         return ResponseEntity.status(401).body(ApiResponse.error("Current PIN is incorrect"));
