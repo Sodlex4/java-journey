@@ -13,16 +13,18 @@ import java.util.Date;
 public class JwtService {
     
     private final SecretKey key;
-    private final long expirationMs = 86400000;
-    
-    public JwtService(@Value("${app.jwt.secret}") String secret) {
+    private final long expirationMs;
+
+    public JwtService(@Value("${app.jwt.secret}") String secret,
+                       @Value("${app.jwt.expiration}") long expirationMs) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException(
                 "app.jwt.secret must be set. Generate one with: openssl rand -base64 32"
             );
         }
-        byte[] keyBytes = Base64.getEncoder().encode(secret.getBytes());
+        byte[] keyBytes = Base64.getDecoder().decode(secret);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.expirationMs = expirationMs;
     }
     
     public String generateToken(Integer userId) {

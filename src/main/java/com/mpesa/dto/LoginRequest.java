@@ -8,6 +8,7 @@ public class LoginRequest {
 
     @NotBlank(message = "PIN is required")
     @Size(min = 4, max = 4, message = "PIN must be 4 digits")
+    @Pattern(regexp = "^\\d{4}$", message = "PIN must be numeric")
     private String pin;
 
     public Integer getUserId() { return userId; }
