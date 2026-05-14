@@ -1,0 +1,13 @@
+.git/
+.gitignore
+.mvn/
+target/
+*.md
+.env
+.classpath
+.project
+.settings/
+.factorypath
+spring.log
+Dockerfile
+docker-compose.yml

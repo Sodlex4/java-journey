@@ -20,7 +20,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    
+
     private final JwtAuthFilter jwtAuthFilter;
     private final List<String> allowedOrigins;
 
@@ -29,7 +29,7 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
         this.allowedOrigins = List.of(allowedOrigins.split(","));
     }
-    
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -41,8 +41,17 @@ public class SecurityConfig {
                 .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                        "{\"success\":false,\"error\":\"Authentication required\"," +
+                        "\"errorCode\":\"ACCESS_DENIED\"}");
+                })
+            )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        
+
         return http.build();
     }
     
