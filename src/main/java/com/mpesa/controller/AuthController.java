@@ -8,14 +8,14 @@ import com.mpesa.dto.RegisterRequest;
 import com.mpesa.exception.PaymentException;
 import com.mpesa.service.UserService;
 import com.mpesa.model.User;
-import com.mpesa.model.Transaction;
 import com.mpesa.security.JwtService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -79,9 +79,18 @@ public class AuthController {
     }
 
     @GetMapping("/transactions")
-    public ResponseEntity<?> getTransactions(@AuthenticationPrincipal Integer userId) {
-        List<Transaction> transactions = userService.getTransactionHistory(userId);
-        return ResponseEntity.ok(transactions);
+    public ResponseEntity<?> getTransactions(
+            @AuthenticationPrincipal Integer userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Page<com.mpesa.model.Transaction> txPage = userService.getTransactionHistory(userId, PageRequest.of(page, size));
+        return ResponseEntity.ok(java.util.Map.of(
+            "transactions", txPage.getContent(),
+            "page", txPage.getNumber(),
+            "size", txPage.getSize(),
+            "totalElements", txPage.getTotalElements(),
+            "totalPages", txPage.getTotalPages()
+        ));
     }
 
     @PostMapping("/change-pin")

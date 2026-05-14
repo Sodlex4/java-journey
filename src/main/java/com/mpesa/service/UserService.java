@@ -12,8 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -198,8 +199,8 @@ public class UserService {
     }
     
     @Transactional(readOnly = true)
-    public List<Transaction> getTransactionHistory(Integer userId) {
-        return transactionRepository.findByUserIdOrderByTimestampDesc(userId);
+    public Page<Transaction> getTransactionHistory(Integer userId, Pageable pageable) {
+        return transactionRepository.findByUserIdOrderByTimestampDesc(userId, pageable);
     }
     
     private void collectFee(BigDecimal fee) {
