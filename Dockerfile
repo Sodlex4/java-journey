@@ -1,10 +1,11 @@
 FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
+COPY mvnw .mvn ./
+RUN ./mvnw --version
 COPY pom.xml .
+RUN ./mvnw dependency:go-offline -B
 COPY src ./src
-COPY .mvn ./.mvn
-RUN apk add --no-cache maven && \
-    mvn package -DskipTests
+RUN ./mvnw package -DskipTests
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

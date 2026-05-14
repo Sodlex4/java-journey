@@ -1,29 +1,23 @@
 package com.mpesa.security;
 
+import com.mpesa.service.RateLimitService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class RateLimitFilter implements Filter {
 
+    private final RateLimitService rateLimitService;
     private final int maxRequestsPerMinute;
-    private final Map<String, AtomicInteger> requestCounts = new ConcurrentHashMap<>();
 
-    public RateLimitFilter(@Value("${app.rate-limit.max-requests:60}") int maxRequestsPerMinute) {
+    public RateLimitFilter(RateLimitService rateLimitService,
+                           @Value("${app.rate-limit.max-requests:60}") int maxRequestsPerMinute) {
+        this.rateLimitService = rateLimitService;
         this.maxRequestsPerMinute = maxRequestsPerMinute;
-    }
-
-    @Scheduled(fixedRate = 60000)
-    public void resetRateLimits() {
-        requestCounts.clear();
     }
 
     @Override
@@ -35,7 +29,7 @@ public class RateLimitFilter implements Filter {
 
         String clientIp = getClientIp(httpRequest);
 
-        if (isRateLimited(clientIp)) {
+        if (!rateLimitService.tryAcquire(clientIp, maxRequestsPerMinute)) {
             httpResponse.setStatus(429);
             httpResponse.setContentType("application/json");
             httpResponse.getWriter().write(
@@ -45,13 +39,6 @@ public class RateLimitFilter implements Filter {
         }
 
         chain.doFilter(request, response);
-    }
-
-    private boolean isRateLimited(String clientIp) {
-        AtomicInteger count = requestCounts.computeIfAbsent(clientIp, k -> new AtomicInteger(0));
-        int requests = count.incrementAndGet();
-
-        return requests > maxRequestsPerMinute;
     }
 
     private String getClientIp(HttpServletRequest request) {
