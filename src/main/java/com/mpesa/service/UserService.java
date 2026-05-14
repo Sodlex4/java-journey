@@ -1,5 +1,6 @@
 package com.mpesa.service;
 
+import com.mpesa.config.FeeProperties;
 import com.mpesa.exception.PaymentException;
 import com.mpesa.model.User;
 import com.mpesa.model.Transaction;
@@ -25,17 +26,19 @@ public class UserService {
     private final TransactionRepository transactionRepository;
     private final SystemAccountRepository systemAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FeeProperties feeProperties;
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("500000");
     private static final int MAX_ATTEMPTS = 3;
     private static final int LOCK_DURATION = 300;
     
     public UserService(UserRepository userRepository, TransactionRepository transactionRepository,
                        SystemAccountRepository systemAccountRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder, FeeProperties feeProperties) {
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
         this.systemAccountRepository = systemAccountRepository;
         this.passwordEncoder = passwordEncoder;
+        this.feeProperties = feeProperties;
     }
     
     public Optional<User> findById(Integer id) {
@@ -211,10 +214,10 @@ public class UserService {
     }
 
     private BigDecimal calculateFee(BigDecimal amount) {
-        if (amount.compareTo(new BigDecimal("100")) <= 0) return BigDecimal.ZERO;
-        if (amount.compareTo(new BigDecimal("500")) <= 0) return new BigDecimal("13");
-        if (amount.compareTo(new BigDecimal("1000")) <= 0) return new BigDecimal("25");
-        return new BigDecimal("30");
+        if (amount.compareTo(feeProperties.getTier1()) <= 0) return feeProperties.getRate1();
+        if (amount.compareTo(feeProperties.getTier2()) <= 0) return feeProperties.getRate2();
+        if (amount.compareTo(feeProperties.getTier3()) <= 0) return feeProperties.getRate3();
+        return feeProperties.getRate4();
     }
     
     private String logTransaction(String type, BigDecimal amount, BigDecimal fee,
