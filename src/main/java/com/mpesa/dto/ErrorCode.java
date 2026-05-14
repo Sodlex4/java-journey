@@ -11,6 +11,7 @@ public enum ErrorCode {
     METHOD_NOT_ALLOWED,
     MALFORMED_REQUEST,
     ACCESS_DENIED,
+    INVALID_CREDENTIALS,
     INTERNAL_ERROR;
 
     public int getHttpStatus() {
@@ -26,6 +27,7 @@ public enum ErrorCode {
             case INVALID_PIN:
             case ACCOUNT_LOCKED:
             case ACCESS_DENIED:
+            case INVALID_CREDENTIALS:
                 return 401;
             case METHOD_NOT_ALLOWED:
                 return 405;

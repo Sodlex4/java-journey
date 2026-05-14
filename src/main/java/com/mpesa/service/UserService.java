@@ -3,8 +3,10 @@ package com.mpesa.service;
 import com.mpesa.exception.PaymentException;
 import com.mpesa.model.User;
 import com.mpesa.model.Transaction;
+import com.mpesa.model.SystemAccount;
 import com.mpesa.repository.UserRepository;
 import com.mpesa.repository.TransactionRepository;
+import com.mpesa.repository.SystemAccountRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -20,15 +22,18 @@ public class UserService {
     
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
+    private final SystemAccountRepository systemAccountRepository;
     private final PasswordEncoder passwordEncoder;
     private static final BigDecimal MAX_AMOUNT = new BigDecimal("500000");
     private static final int MAX_ATTEMPTS = 3;
     private static final int LOCK_DURATION = 300;
     
-    public UserService(UserRepository userRepository, TransactionRepository transactionRepository, 
+    public UserService(UserRepository userRepository, TransactionRepository transactionRepository,
+                       SystemAccountRepository systemAccountRepository,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
+        this.systemAccountRepository = systemAccountRepository;
         this.passwordEncoder = passwordEncoder;
     }
     
@@ -152,6 +157,7 @@ public class UserService {
         }
         
         logTransaction("WITHDRAW", amount, fee, "SUCCESS", user.getUsername(), null, user);
+        collectFee(fee);
         
         return "Withdrawal successful. Amount: KES " + amount +
                (fee.compareTo(BigDecimal.ZERO) > 0 ? ", Fee: KES " + fee : "") +
@@ -180,6 +186,7 @@ public class UserService {
         
         logTransaction("TRANSFER", amount, fee, "SUCCESS", from.getUsername(), to.getUsername(), from);
         logTransaction("TRANSFER", amount, BigDecimal.ZERO, "SUCCESS", from.getUsername(), to.getUsername(), to);
+        collectFee(fee);
         
         return "Transfer successful. Sent KES " + amount + " to " + to.getUsername() + 
                ". New balance: KES " + from.getBalance();
@@ -195,6 +202,13 @@ public class UserService {
         return transactionRepository.findByUserIdOrderByTimestampDesc(userId);
     }
     
+    private void collectFee(BigDecimal fee) {
+        if (fee.compareTo(BigDecimal.ZERO) <= 0) return;
+        SystemAccount safaricom = systemAccountRepository.findByAccountName("SAFARICOM")
+            .orElseGet(() -> systemAccountRepository.save(new SystemAccount("SAFARICOM", BigDecimal.ZERO)));
+        safaricom.deposit(fee);
+    }
+
     private BigDecimal calculateFee(BigDecimal amount) {
         if (amount.compareTo(new BigDecimal("100")) <= 0) return BigDecimal.ZERO;
         if (amount.compareTo(new BigDecimal("500")) <= 0) return new BigDecimal("13");

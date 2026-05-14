@@ -2,6 +2,7 @@ package com.mpesa.controller;
 
 import com.mpesa.dto.ApiResponse;
 import com.mpesa.dto.ChangePinRequest;
+import com.mpesa.dto.ErrorCode;
 import com.mpesa.dto.LoginRequest;
 import com.mpesa.dto.RegisterRequest;
 import com.mpesa.exception.PaymentException;
@@ -40,11 +41,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        if (userService.isLocked(request.getUserId())) {
-            long remaining = userService.getLockRemainingSeconds(request.getUserId());
-            throw new PaymentException("Account locked. Try again in " + remaining + " seconds.");
-        }
-
         if (userService.verifyPin(request.getUserId(), request.getPin())) {
             String token = jwtService.generateToken(request.getUserId());
             return ResponseEntity.ok(ApiResponse.success(
@@ -53,7 +49,8 @@ public class AuthController {
             ));
         }
 
-        throw new PaymentException("Invalid PIN");
+        return ResponseEntity.status(401).body(
+            ApiResponse.error("Invalid credentials", ErrorCode.INVALID_CREDENTIALS));
     }
 
     @GetMapping("/user/{id}")
