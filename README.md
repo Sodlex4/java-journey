@@ -1,0 +1,60 @@
+# java-oop
+
+My Java Object-Oriented Programming journey — hands-on lessons going from OOP basics to modern Java features, one small runnable program at a time.
+
+Each folder is a self-contained lesson with its own `main` method. Compile and run, read the code, then move on.
+
+## Requirements
+
+- **Java 21+** (the project targets Java 21)
+- Maven (optional — only needed for the Eclipse/Maven project setup)
+- Eclipse (optional — `.project`/`.classpath`/`.settings/` are included if you want to open it as a project)
+
+## How to run
+
+Compile the lesson file with `javac`, then run the class that contains `main` (note the main class is not always the file's first class):
+
+```bash
+javac 01-oop-basics/Book.java       && java -cp 01-oop-basics Book
+javac 02-inheritance/inheritance.java && java -cp 02-inheritance Manager
+javac 03-composition/Computer.java  && java -cp 03-composition Computer
+javac 04-interfaces/Interfaces.java && java -cp 04-interfaces Interfaces
+javac 05-diamond/DiamondProblem.java && java -cp 05-diamond DiamondProblem
+javac 06-sealed/SealedClasses.java  && java -cp 06-sealed SealedClasses
+```
+
+Each folder compiles all of its classes at once; the entry class for each lesson is listed in the table below.
+
+> Note: compiled `.class` files are ignored by git (`*.class` in `.gitignore`). They're regenerated automatically on every build — only the `.java` source is tracked.
+
+## Lessons
+
+### 01 — OOP Basics
+`Book.java` — a `Book` class with a constructor, and overrides of `toString()`, `equals()`, and `hashCode()`. The main shows what happens when you compare two identical `Book` objects (hash codes and equality).
+
+### 02 — Inheritance
+`inheritance.java` — `Person` → `Employee` → `Manager` chain. Covers `extends`, the `super` keyword, method overriding (`speak()`, `toString()`), and how a subclass inherits and extends behavior.
+
+### 03 — Composition
+`Computer.java` — a `Computer` "has-a" `CPU`, `RAM`, and `HardDrive` (composition). Shows how objects are built from other objects instead of inheriting from them.
+
+### 04 — Interfaces
+`Interfaces.java` — abstract class `Teacher` plus `Coach` and `Researcher` interfaces. Shows `implements`, `extends` + `implements` together, abstract methods, and a class (`ScienceTeacher`) implementing multiple interfaces.
+
+### 05 — Diamond Problem
+`DiamondProblem.java` — two interfaces `A` and `B` both providing a `default hello()`. Class `C implements A, B` resolves the conflict with `A.super.hello()` — how Java solves the diamond problem.
+
+### 06 — Sealed Classes
+`SealedClasses.java` — `sealed` abstract class `Shape` permitting exactly `Circle`, `Square`, and `Triangle`, each `final`. Uses a `switch` pattern to describe any `Shape` — exhaustiveness guaranteed at compile time.
+
+## Project layout
+
+| Path | Topic | Entry class |
+|------|-------|-------------|
+| `01-oop-basics/` | Classes, constructors, `toString`/`equals`/`hashCode` | `Book` |
+| `02-inheritance/` | Inheritance and overriding | `Manager` |
+| `03-composition/` | Composition ("has-a") | `Computer` |
+| `04-interfaces/` | Interfaces and abstract classes | `Interfaces` |
+| `05-diamond/` | The diamond problem and default methods | `DiamondProblem` |
+| `06-sealed/` | Sealed classes and pattern-matching switch | `SealedClasses` |
+| `pom.xml` | Maven project definition (Java 21) | — |
