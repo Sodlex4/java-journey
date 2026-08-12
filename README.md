@@ -1,6 +1,13 @@
-# java-oop
+# java-journey
 
-My Java Object-Oriented Programming journey — hands-on lessons going from OOP basics to modern Java features, one small runnable program at a time.
+![Java 21](https://img.shields.io/badge/Java-21-orange?logo=openjdk&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
+
+A hands-on Java Object-Oriented Programming journey — from OOP basics to modern Java features, one small runnable program at a time.
+
+## Why
+
+Each lesson is a self-contained, runnable program. Compile, run, read the code, then move on. Topics build on each other: object fundamentals → inheritance → composition → interfaces → the diamond problem → sealed classes → generics. No frameworks, no boilerplate — just focused programs that demonstrate one concept each.
 
 Each folder is a self-contained lesson with its own `main` method. Compile and run, read the code, then move on.
 
@@ -21,6 +28,7 @@ javac 03-composition/Computer.java  && java -cp 03-composition Computer
 javac 04-interfaces/Interfaces.java && java -cp 04-interfaces Interfaces
 javac 05-diamond/DiamondProblem.java && java -cp 05-diamond DiamondProblem
 javac 06-sealed/SealedClasses.java  && java -cp 06-sealed SealedClasses
+javac 07-generics/Generics.java    && java -cp 07-generics Generics
 ```
 
 Each folder compiles all of its classes at once; the entry class for each lesson is listed in the table below.
@@ -47,6 +55,9 @@ Each folder compiles all of its classes at once; the entry class for each lesson
 ### 06 — Sealed Classes
 `SealedClasses.java` — `sealed` abstract class `Shape` permitting exactly `Circle`, `Square`, and `Triangle`, each `final`. Uses a `switch` pattern to describe any `Shape` — exhaustiveness guaranteed at compile time.
 
+### 07 — Generics
+`Generics.java` — `Box<T>` (generic class), `NumericBox<T extends Number>` (bounded type parameter), and a `Counter` helper with a generic method `<T> countOf`, plus wildcards (`List<? extends Number>`, `List<?>`). Shows type safety and how to read/write through wildcard bounds.
+
 ## Project layout
 
 | Path | Topic | Entry class |
@@ -57,4 +68,5 @@ Each folder compiles all of its classes at once; the entry class for each lesson
 | `04-interfaces/` | Interfaces and abstract classes | `Interfaces` |
 | `05-diamond/` | The diamond problem and default methods | `DiamondProblem` |
 | `06-sealed/` | Sealed classes and pattern-matching switch | `SealedClasses` |
+| `07-generics/` | Generic classes, bounded types, wildcards | `Generics` |
 | `pom.xml` | Maven project definition (Java 21) | — |
