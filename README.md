@@ -7,7 +7,7 @@ A hands-on Java Object-Oriented Programming journey — from OOP basics to moder
 
 ## Why
 
-Each lesson is a self-contained, runnable program. Compile, run, read the code, then move on. Topics build on each other: object fundamentals → inheritance → composition → interfaces → the diamond problem → sealed classes → generics → dynamic dispatch. No frameworks, no boilerplate — just focused programs that demonstrate one concept each.
+Each lesson is a self-contained, runnable program. Compile, run, read the code, then move on. Topics build on each other: object fundamentals → inheritance → composition → interfaces → the diamond problem → sealed classes → generics → dynamic dispatch → covariant returns. No frameworks, no boilerplate — just focused programs that demonstrate one concept each.
 
 Each folder is a self-contained lesson with its own `main` method. Compile and run, read the code, then move on.
 
@@ -30,6 +30,7 @@ javac 05-diamond/DiamondProblem.java && java -cp 05-diamond DiamondProblem
 javac 06-sealed/SealedClasses.java  && java -cp 06-sealed SealedClasses
 javac 07-generics/Generics.java    && java -cp 07-generics Generics
 javac 08-dispatch/Dispatch.java    && java -cp 08-dispatch Dispatch
+javac 09-covariant/Covariant.java  && java -cp 09-covariant Covariant
 ```
 
 Each folder compiles all of its classes at once; the entry class for each lesson is listed in the table below.
@@ -62,6 +63,9 @@ Each folder compiles all of its classes at once; the entry class for each lesson
 ### 08 — Dynamic Dispatch
 `Dispatch.java` — `A` → `B` → `C` chain where each class overrides `go()`. Shows that the *actual* runtime type decides which method runs, not the declared reference type. `bOnly()` (defined in `B`) is inherited by `C` but invisible through an `A` reference — compile-time visibility vs runtime dispatch.
 
+### 09 — Covariant Return Types
+`Covariant.java` — `Animal` and `Dog` where `Dog.baby()` overrides `Animal.baby()` but returns a `Dog` (a subtype) instead of `Animal`. No cast needed on the caller side. Also shows a covariant override of an interface method, and uses reflection to reveal the synthetic bridge method the compiler generates (`create()` returning `Animal`).
+
 ## Project layout
 
 | Path | Topic | Entry class |
@@ -74,4 +78,5 @@ Each folder compiles all of its classes at once; the entry class for each lesson
 | `06-sealed/` | Sealed classes and pattern-matching switch | `SealedClasses` |
 | `07-generics/` | Generic classes, bounded types, wildcards | `Generics` |
 | `08-dispatch/` | Dynamic dispatch (runtime polymorphism) | `Dispatch` |
+| `09-covariant/` | Covariant return types, bridge methods | `Covariant` |
 | `pom.xml` | Maven project definition (Java 21) | — |
